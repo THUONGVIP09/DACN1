@@ -1,33 +1,8 @@
-[
-  {
-    "text": "Lúc này mới lật đật kê đồ điện tử lên cao, song nhiều đồ đạc vẫn ngập hư hỏng",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Nước ngập ngoài đường còn sâu nên cả gia đình chỉ ngồi một chỗ, không dám đi đâu",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Nước lên lúc rạng sáng, do đang ngủ nên gia đình trở tay không kịp, đồ đạc, sách vở của các con ướt hết",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Con hy vọng sách kịp khô để ngày mai còn đến lớp",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
+﻿[
   {
     "text": "Nước tràn vào khu trọ lúc rạng sáng qua đến nay vẫn chưa rút. Nhiều người đã bỏ phòng đi kiếm nhà người thân ở tạm",
     "category": ["ngập nước"],
     "priority": 2
-  },
-  {
-    "text": "Sống tại khu vực này gần 30 năm nhưng đây là lần đầu tôi thấy triều cường lên nhanh như vậy",
-    "category": ["ngập nước"],
-    "priority": 1
   },
   {
     "text": "Từ nửa đêm nước bắt đầu dâng, đến rạng sáng đã tràn vào nhà, chúng tôi không kịp kê đồ đạc, nhiều xe máy và vật dụng bị hư hỏng",
@@ -36,46 +11,11 @@
   },
   {
     "text": "Bỏ cuộc thôi dì ơi. Ngập sâu và tắc lắm, không thể đi nổi",
-    "category": ["ngập nước", "kẹt xe"],
+    "category": ["ngập nước", "ùn tắc giao thông"],
     "priority": 2
   },
   {
     "text": "Không thể vượt qua nổi 'cảng nước sâu' Mỹ Đình",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Phố thành sông thì đi bộ, đi xe đạp còn chắc ăn hơn",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Khuyến nghị hôm nay là nên nghỉ làm, còn hơn liều mình lội nước rồi lại mất tiền sửa xe",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Nghĩ đến cảnh mưa bão con phải đi học mà thương đứt ruột",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Xuống thì đỡ chứ mỗi lần lên phải ngồi nghỉ cả chục lượt. Chân mỏi rã rời, không còn sức làm gì nữa",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Hai ngày liên tục lên xuống 23 tầng, nhiều người đùa rằng trận lụt này biến họ thành vận động viên leo núi",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Nhiều người đặt đồ nhưng không có sức đi thang bộ xuống lấy",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Những gia đình có người già, trẻ nhỏ, phụ nữ mới sinh không thể đi đâu",
     "category": ["ngập nước"],
     "priority": 2
   },
@@ -85,124 +25,14 @@
     "priority": 1
   },
   {
-    "text": "Điện, nước đã có trở lại nhưng thang máy vẫn chưa hoạt động. Tôi không còn sức để đi thang bộ nữa",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Thưa rằng, chúng tôi sợ nhất kẹt xe nhì ngập nước. Hai \"món\" này tới cùng lúc nữa thành khổ hết chỗ nói!",
-    "category": ["kẹt xe", "ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Tôi bị kẹt cứng trong trận kẹt xe tứ phía vào tối 8-10 ở quận Bình Thạnh. Chưa bao giờ trải qua tình trạng kẹt xe khủng khiếp như vậy.",
-    "category": ["kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Đường này xe qua lại nhiều, triều cường lên vào giờ cao điểm lại gây thêm kẹt xe. Ai cũng khổ",
-    "category": ["ngập nước", "kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Nay tất cả cửa hàng đều phải đóng cửa, hàng lấy về đành phải bỏ vì đường ngập sâu, mọi thứ đảo lộn. Đây là lần thứ hai trong một tuần qua đường phố ngập sâu như thế này, còn 2 tháng qua là ngập tận ba lần, mỗi lần ngập 4-5 ngày",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Đây là lần ngập thứ hai trong hơn một tuần qua, lần nào ngập cũng hỏng hết đồ đạc. Tầm 5h sáng quanh đi quẩn lại nước đã tràn vào nhà, mình đang phải be bờ và tát nước từ sáng tới giờ",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Vợ chồng tôi chờ xe buýt mãi không thấy, con trai sốt ruột phải lấy xe máy đi đón. Cũng lo lắm vì nhiều tuyến đường Hà Đông ngập sâu, nhưng cháu bảo sắp tới nơi rồi nên tôi cố chờ. Nghĩ đến đường về vẫn thấy lo vì nhiều điểm được cảnh báo ngập nặng",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Lúc đi trời mới mưa nhẹ nên vẫn cố đi, đến nơi thì đường bắt đầu ngập. Khám xong từ trưa mà tới giờ vẫn chưa có xe buýt về. Biết mưa ngập thế này thì đã chẳng đi rồi",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
     "text": "Nước ngập cao ngang vỉa hè, giờ không biết đâu là lòng đường, đâu là vỉa hè. Mùa này học sinh đi học nhiều, qua đoạn này hết sức nguy hiểm",
     "category": ["ngập nước"],
     "priority": 2
   },
   {
-    "text": "Tôi chạy qua đây bị chao đảo tay lái vì mặt đường nhấp nhô nhưng bị nước ngập che khuất",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Mỗi lần như vậy là buôn bán khổ lắm. Không chỉ ít khách mà hàng hóa còn bị ướt vì mỗi lần xe lớn chạy qua là nước văng tung tóe",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "nước dâng cao rất nhanh, nếu không kịp bơm ra ngoài, nhà họ sẽ lại bị ngập",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Tôi dựng xe lên lề, đợi hơn 2 tiếng rồi mà vẫn chưa đi được vì nước vẫn còn ngập quá sâu không dám cho xe chạy tiếp",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Đường Phú Thuận này mưa cũng ngập, triều cường nhẹ hay nặng cũng đều ngập. Tôi và nhiều hộ dân buôn bán làm ăn trên tuyến đường này đã quá ngán ngẩm việc, công việc làm ăn buôn bán và sinh hoạt bị đảo lộn rất nhiều",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Nước sâu có đoạn tới cổ, nếu dắt xe cũng khó qua được",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Nước lên nhanh từ chiều, chúng tôi không kịp chạy nên bất lực nhìn đồ đạc ngấm nước, chỉ có chiếc máy in còn 10 cm nữa là ngập UC",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
     "text": "Con đường này hễ mưa lớn là ngập. Tôi đã chứng kiến cảnh ngập này gần 10 năm nay. Mỗi lần ngập là giao thông như tê liệt, xe chết máy. Tôi phải lội nước đưa con đi học chứ không dám mang xe ra khỏi nhà",
-    "category": ["ngập nước", "kẹt xe"],
+    "category": ["ngập nước", "ùn tắc giao thông"],
     "priority": 2
-  },
-  {
-    "text": "Chỉ 10 km từ Mỹ Đình về Phố Huế mà sau 18 tiếng tôi vẫn trên đường",
-    "category": ["ngập nước", "kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Giờ tôi thấy chóng mặt, hoa mắt vì thiếu oxy, mặt mũi bơ phờ, người hôi hám",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Mưa kéo theo rác từ phía chợ trên cao xuống khiến ngập nặng hơn. Tôi phải cố vớt rác chứ không ngập kéo dài đến tối",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "Tôi ở đây từ bé, chỗ này ngập hơn 30 năm nay rồi",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "phải hai tiếng nước mới rút hết khỏi nhà để dọn dẹp",
-    "category": ["ngập nước"],
-    "priority": 1
-  },
-  {
-    "text": "đã chặn tấm thép trước cửa và dùng máy bơm, nước vẫn tràn vào nhà",
-    "category": ["ngập nước"],
-    "priority": 2
-  },
-  {
-    "text": "Gọi con đón không được, đặt xe cũng không ai nhận. Tôi chờ hơn một tiếng, giờ đợi nước rút mới về Dương Nội. Chưa bao giờ chứng kiến cảnh tắc và ngập như lần này ở Thủ đô",
-    "category": ["ngập nước", "kẹt xe"],
-    "priority": 1
   },
   {
     "text": "Tôi từng đi qua đoạn ngập nhiều lần nhưng đây là lần đầu gặp tình trạng thủy kích. Tôi đã chụp ảnh gửi bảo hiểm và giữ nguyên hiện trường để chờ họ tới xử lý",
@@ -210,9 +40,14 @@
     "priority": 2
   },
   {
-    "text": "con đường này thường xuyên rơi vào cảnh ngập mỗi khi mưa lớn. Hôm nay, cơn mưa chỉ diễn ra khoảng 15 phút nhưng con đường đã ngập sâu. Mỗi lần ngập nước đều tràn vào nhà làm cuộc sống trở nên khó khăn hơn.",
+    "text": "Đây là lần ngập thứ hai trong hơn một tuần qua, lần nào ngập cũng hỏng hết đồ đạc. Tầm 5h sáng quanh đi quẩn lại nước đã tràn vào nhà, mình đang phải be bờ và tát nước từ sáng tới giờ",
     "category": ["ngập nước"],
-    "priority": 1
+    "priority": 2
+  },
+  {
+    "text": "Nước dâng cao rất nhanh, nếu không kịp bơm ra ngoài, nhà họ sẽ lại bị ngập",
+    "category": ["ngập nước"],
+    "priority": 2
   },
   {
     "text": "Cả tuần nay ngày nào cũng mưa lớn, đường Lê Văn Thọ thì hễ mưa là ngập nên tôi buôn bán ế ẩm lắm. Mong sớm cách khắc phục giúp để bà con đỡ khổ mỗi khi mùa mưa về",
@@ -220,158 +55,508 @@
     "priority": 1
   },
   {
-    "text": "Tính mạng người dân đang được quyết định theo kiểu may rủi khi đi đường hay sao?",
+    "text": "Chỉ 10 km từ Mỹ Đình về Phố Huế mà sau 18 tiếng tôi vẫn trên đường vì ngập và tắc khắp nơi",
+    "category": ["ngập nước", "ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Tuyến đường Nguyễn Hữu Cảnh cứ mưa là ngập, người dân đã kiến nghị xử lý nhưng chưa thấy kết quả",
+    "category": ["ngập nước"],
+    "priority": 1
+  },
+  {
+    "text": "Mưa kéo theo rác từ phía chợ trên cao xuống khiến cống tắc và ngập nặng hơn. Tôi phải cố vớt rác chứ không ngập kéo dài đến tối",
+    "category": ["ngập nước", "cống rảnh"],
+    "priority": 1
+  },
+  {
+    "text": "Đường hư hỏng nặng sau trận mưa lớn, ổ gà xuất hiện khắp nơi khiến xe cộ dễ bị tai nạn",
+    "category": ["hư hỏng đường xá"],
+    "priority": 2
+  },
+  {
+    "text": "Mặt đường bong tróc, lún sụt nghiêm trọng sau thời gian dài không được nâng cấp. Đi xe rất nguy hiểm",
+    "category": ["hư hỏng đường xá"],
+    "priority": 2
+  },
+  {
+    "text": "Ổ gà trên đường Đinh Tiên Hoàng to như cái chậu, xe máy đi qua bị văng hẳn người, may mà không ai bị thương nặng",
+    "category": ["hư hỏng đường xá"],
+    "priority": 2
+  },
+  {
+    "text": "Đoạn đường này vừa sửa xong mấy tháng đã lại bong tróc, lún nứt. Tiền thuế của dân đổ đi đâu vậy?",
+    "category": ["hư hỏng đường xá"],
+    "priority": 1
+  },
+  {
+    "text": "Dự án trị giá 47.000 tỷ đồng, mất 17 năm xây dựng, bao nhiêu lần chạy thử mà mới hoạt động được mấy ngày đã hư hỏng thì ai còn dám đi?",
+    "category": ["hư hỏng đường xá"],
+    "priority": 1
+  },
+  {
+    "text": "Con đường vào khu công nghiệp xuống cấp trầm trọng, xe tải nặng đi qua đêm nào cũng nghe tiếng nứt vỡ mặt đường",
+    "category": ["hư hỏng đường xá"],
+    "priority": 2
+  },
+  {
+    "text": "Mặt đường bị sụt lún tạo thành hố sâu giữa lòng đường, ban đêm không có đèn chiếu sáng rất nguy hiểm cho người đi xe máy",
+    "category": ["hư hỏng đường xá"],
+    "priority": 2
+  },
+  {
+    "text": "Vào cua khúc này mà không có biển cảnh báo, người mới đến không biết rất dễ bị tai nạn",
+    "category": ["Thiếu biển báo"],
+    "priority": 2
+  },
+  {
+    "text": "Đoạn đường công trường đang thi công nhưng không có biển báo nguy hiểm, xe cộ cứ chạy ào vào gây nguy cơ tai nạn cao",
+    "category": ["Thiếu biển báo"],
+    "priority": 2
+  },
+  {
+    "text": "Ngã ba này nhiều người đi mà không có biển chỉ dẫn nào cả, xe từ các hướng cứ lao vào nhau loạn xà ngầu",
+    "category": ["Thiếu biển báo"],
+    "priority": 1
+  },
+  {
+    "text": "Đường vào khu dân cư mới không có biển tốc độ quy định, xe máy và ô tô phóng bừa bãi rất nguy hiểm cho trẻ em",
+    "category": ["Thiếu biển báo"],
+    "priority": 2
+  },
+  {
+    "text": "Khúc cua mù gần cầu không có biển cảnh báo, đã xảy ra 3 vụ va chạm trong tháng vừa rồi",
+    "category": ["Thiếu biển báo"],
+    "priority": 2
+  },
+  {
+    "text": "Biển báo giới hạn tải trọng cầu bị mờ, xe tải quá tải vẫn cứ qua gây nguy hiểm cho cây cầu và người dân phía dưới",
+    "category": ["Thiếu biển báo", "cầu"],
+    "priority": 2
+  },
+  {
+    "text": "Đường vào hầm chui thiếu biển cảnh báo chiều cao, xe container thường xuyên mắc kẹt gây ùn tắc kéo dài",
+    "category": ["Thiếu biển báo", "ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Biển báo bị cây cối che khuất hoàn toàn, đề nghị cơ quan có thẩm quyền cho cắt tỉa cây hoặc di dời biển báo",
+    "category": ["Thiếu biển báo", "cảnh quan đô thị"],
+    "priority": 1
+  },
+  {
+    "text": "Tính mạng người dân đang được quyết định theo kiểu may rủi khi đi đường, đèn tín hiệu hỏng mà không ai sửa",
     "category": ["đèn tín hiệu"],
     "priority": 1
   },
   {
-    "text": "Dự án hàng trị giá 47.000 tỷ đồng, mất 17 năm xây dựng, bao nhiêu lần chạy thử mà mới hoạt động được mấy ngày đã như thế này thì ai còn dám đi?",
-    "category": ["hư hỏng hạ tầng"],
-    "priority": 1
-  },
-  {
-    "text": "Việc cấm xe máy sẽ có tác động vô cùng lớn tới đời sống của người dân. Bởi đa số đang sử dụng xe máy như một phương tiện tiện lợi, tiết kiệm... cắt đi \"đôi chân\" sinh kế của hàng triệu người.",
-    "category": ["kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Nhanh một giây, chậm cả đời! Hôm nay 24/3, khúc cua này xe tải chở đất đổ đèo... Đường mưa trơn, cua gắt, tầm nhìn bị che. Nguy hiểm lắm! Anh em hay chạy tuyến này nhớ: Giảm tốc từ xa, Bóp còi liên tục...",
-    "category": ["tai nạn"],
-    "priority": 2
-  },
-  {
-    "text": "Vô pháp quá, cái vỉa hè còn không thuộc về nhà của họ nữa chứ đòi ra chiếm luôn mặt đường",
-    "category": ["vỉa hè"],
-    "priority": 1
-  },
-  {
-    "text": "Áp dụng quyền ưu tiên bên tay trái cho tất cả các phương tiện kể cả xe gắn máy. Khi đến ngã tư phải giảm tốc độ quan sát hướng bên trái nhường cho phương tiện bên trái qua trước. Áp dụng cho các bên nếu tuân thủ nguyên tác ưu tiên bên trái sẽ giảm tai nạn.",
-    "category": ["đèn tín hiệu", "tai nạn"],
-    "priority": 1
-  },
-  {
-    "text": "Trong trường hợp ở ngã tư không có đèn xanh đỏ. Nguyên tắc phải nhường quyền ưu tiên bên tay trái... Xét về luật xe tải đi sai.",
-    "category": ["đèn tín hiệu", "tai nạn"],
-    "priority": 1
-  },
-  {
-    "text": "Nghị định 168/2024 là một sáng tạo “lịch sử” chỉ có ở CHXHCN VN... Người dân sẽ không cần thiết phải đi lao động chi nữa... Cứ đổ ra đường, chia nhau “rình” quanh các tụ điểm có đèn xanh đèn đỏ.... Kiếm tiền dễ quá...",
-    "category": ["vi phạm luật"],
-    "priority": 0
-  },
-  {
-    "text": "Năm 2025 sẽ là kỷ nguyên rực rỡ của Bộ Công An... Nhìn danh sách tăng mức phạt theo cấp số nhân hàng chục lần của cục CSGT khiến người dân không khỏi rùng mình.",
-    "category": ["vi phạm luật"],
-    "priority": 0
-  },
-  {
-    "text": "Du lịch thôi, chứ ai đi làm, xe máy hoặc xe ô tô, ngày nào đi làm về cũng thấy cảnh này phát ớn. Từ chỗ làm về nhà 6km, nhưng 30-40 phút mới về tới nhà.",
-    "category": ["kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Thủ Đức: Chiều ngày 07/03/2025 trên đường Kha Vạn Cân, một em học sinh đã suýt bị bánh xe bus cán qua khi chưa xuống khỏi xe mà tài xế đã đóng cửa khiến cho em bị kẹt balo và ngã lăn xuống đất... Không một ai xuống xe để xin lỗi hay hỏi thăm em học sinh kể cả người tái xế!",
-    "category": ["tai nạn"],
-    "priority": 2
-  },
-  {
-    "text": "Đường phía dưới ngập thì đi tàu điện trên cao đúng là an toàn nhất, lại không tắc",
-    "category": ["ngập nước", "kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Nhìn đường phố ngập lụt vì mưa bão thì trong lòng lại ao ước về một hệ thống giao thông công cộng hiện đại, rộng khắp, kết nối đến thẳng các TTTM, trường học, công sở, ... như đô thị lớn ở các nước tiên tiến.",
-    "category": ["ngập nước", "kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Sài Gòn đang rất cần một hệ thống tàu điện ngầm rộng khắp và cơ sở hạ tầng điện lực để hỗ trợ xe máy điện. Việc này sẽ giúp giảm tắc nghẽn, tiếng ồn và ô nhiễm.",
-    "category": ["kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Thành thật mà nói, Sài Gòn chà đạp người ta quá, kẹt xe là cái khổ nhất khi sống ở đây.",
-    "category": ["kẹt xe"],
-    "priority": 1
-  },
-  {
-    "text": "Nhiều xe phóng nhanh trong khu vực đông đúc. Nhiều xe len lỏi vượt ẩu. À, còn nhiều tài xế gây tai nạn xong chuồn mất vì không muốn chịu trách nhiệm nữa.",
-    "category": ["tai nạn", "ý thức giao thông"],
-    "priority": 2
-  },
-  {
-    "text": "Xe máy lái chậm mà lái giữa đường (nhất là trung niên và phụ nữ). Xe buýt đi làn xe máy. Xe ô tô học thói loi choi lóc chóc chuyển làn liên tục.",
-    "category": ["ý thức giao thông"],
-    "priority": 1
-  },
-  {
-    "text": "Đường cao tốc toàn bẫy chết người. Mày sẽ chỉ cách mấy milimet là gặp tai nạn với mấy ông tài xế xe buýt, xe tải điên khùng, phóng nhanh vượt ẩu.",
-    "category": ["tai nạn"],
-    "priority": 2
-  },
-  {
-    "text": "Có 3 ngàn đồng, đi đc gần hết tp hcm , bth đi xe tầm 25p, xe buýt 45p nhưng tránh thủ tg làm việc, đọc sách, lướt đth phê luôn. Có muốn ngủ thì ngủ.",
-    "category": ["kẹt xe"],
-    "priority": 0
-  },
-  {
-    "text": "Đúng là vỉa hè ở Hà Nội có nhiều chướng ngại vật hơn ở Sài Gòn.",
-    "category": ["vỉa hè"],
-    "priority": 0
-  },
-  {
-    "text": "Đừng dựa vào lý do kinh doanh để lấn chiếm vỉa hè trong khi đã có biết bao tai nạn xảy ra do vỉa hè bị chiếm dụng. Cần nghiêm trị, quyết liệt và triệt để với vấn đề này.",
-    "category": ["vỉa hè", "tai nạn"],
-    "priority": 1
-  },
-  {
-    "text": "Đã có luật thì phải thực thi nghiêm minh, không có ngoại lệ, người dân mới tâm phục khẩu phục.",
-    "category": ["vỉa hè", "vi phạm luật"],
-    "priority": 0
-  },
-  {
-    "text": "Dealing with the street traffic here hasn't been easy but I've been getting better at it. There's definitely a lot of negotiation going around.",
-    "category": ["kẹt xe", "ý thức giao thông"],
-    "priority": 1
-  },
-  {
-    "text": "Dân Sài Gòn phải dắt xe máy đi bộ qua giao lộ vì đèn tín hiệu chập chờn hoặc không hoạt động.",
+    "text": "Dân Sài Gòn phải dắt xe máy đi bộ qua giao lộ vì đèn tín hiệu chập chờn hoặc không hoạt động",
     "category": ["đèn tín hiệu"],
     "priority": 1
   },
   {
-    "text": "Đèn tín hiệu mất tín hiệu khiến xe cộ tê liệt, mọi người lo sợ bị phạt theo Nghị định 168 nên không dám vượt.",
+    "text": "Đèn tín hiệu mất tín hiệu khiến xe cộ tê liệt, mọi người lo sợ bị phạt theo Nghị định 168 nên không dám vượt",
     "category": ["đèn tín hiệu", "vi phạm luật"],
     "priority": 1
   },
   {
-    "text": "Vỉa hè bị lấn chiếm khiến người đi bộ không còn chỗ, phải đi xuống lòng đường, tiềm ẩn nguy cơ tai nạn giao thông.",
-    "category": ["vỉa hè", "tai nạn"],
+    "text": "Sau khi áp dụng mức xử phạt mới, người dân bỏ thói quen rẽ phải khi đèn đỏ dẫn đến ùn tắc nghiêm trọng hơn",
+    "category": ["đèn tín hiệu", "ùn tắc giao thông", "vi phạm luật"],
     "priority": 1
   },
   {
-    "text": "Ô tô, xe máy ngáng đường xe buýt khiến hành khách xuống xe giữa lòng đường.",
+    "text": "Đèn xanh đỏ ở ngã tư này bị lỗi, cứ xanh cả bốn chiều cùng lúc, xe cộ hỗn loạn không biết ai nhường ai",
+    "category": ["đèn tín hiệu"],
+    "priority": 2
+  },
+  {
+    "text": "Thời gian đèn xanh quá ngắn, chỉ 8 giây cho cả một con đường lớn, mỗi lần đèn xanh chỉ vài xe qua được",
+    "category": ["đèn tín hiệu"],
+    "priority": 1
+  },
+  {
+    "text": "Đèn tín hiệu cho người đi bộ ở đây đã hỏng nhiều tháng, người dân phải liều mình băng qua đường đông đúc",
+    "category": ["đèn tín hiệu"],
+    "priority": 2
+  },
+  {
+    "text": "Áp dụng quyền ưu tiên bên tay trái cho tất cả các phương tiện. Khi đến ngã tư phải giảm tốc độ và nhường cho phương tiện bên trái qua trước để giảm tai nạn",
+    "category": ["đèn tín hiệu", "tai nạn"],
+    "priority": 1
+  },
+  {
+    "text": "Nhanh một giây, chậm cả đời! Khúc cua này xe tải chở đất đổ đèo. Đường mưa trơn, cua gắt, tầm nhìn bị che. Nguy hiểm lắm! Anh em hay chạy tuyến này nhớ giảm tốc từ xa",
+    "category": ["tai nạn"],
+    "priority": 2
+  },
+  {
+    "text": "Thủ Đức: Một em học sinh đã suýt bị bánh xe bus cán qua khi chưa xuống khỏi xe mà tài xế đã đóng cửa khiến cho em bị kẹt balo và ngã lăn xuống đất. Không một ai xuống xe để xin lỗi hay hỏi thăm",
+    "category": ["tai nạn"],
+    "priority": 2
+  },
+  {
+    "text": "Nhiều xe phóng nhanh trong khu vực đông đúc, len lỏi vượt ẩu. Còn nhiều tài xế gây tai nạn xong chuồn mất vì không muốn chịu trách nhiệm",
+    "category": ["tai nạn", "ý thức giao thông"],
+    "priority": 2
+  },
+  {
+    "text": "Đường cao tốc toàn bẫy chết người. Chỉ cách mấy milimet là gặp tai nạn với mấy ông tài xế xe buýt, xe tải phóng nhanh vượt ẩu",
+    "category": ["tai nạn"],
+    "priority": 2
+  },
+  {
+    "text": "Vỉa hè bị lấn chiếm khiến người đi bộ tràn xuống lòng đường, tiềm ẩn nguy cơ tai nạn giao thông",
+    "category": ["lấn chiếm vỉa hè", "tai nạn"],
+    "priority": 1
+  },
+  {
+    "text": "Xe máy vượt đèn đỏ tốc độ cao đâm thẳng vào xe tải đang qua ngã tư, hậu quả rất nghiêm trọng",
+    "category": ["tai nạn", "vi phạm luật"],
+    "priority": 2
+  },
+  {
+    "text": "Va chạm liên hoàn 4 xe trên đường cao tốc do xe phía sau không giữ khoảng cách an toàn, 2 người bị thương",
+    "category": ["tai nạn"],
+    "priority": 2
+  },
+  {
+    "text": "Tôi bị kẹt cứng trong trận ùn tắc tứ phía ở quận Bình Thạnh. Chưa bao giờ trải qua tình trạng kẹt xe khủng khiếp như vậy",
+    "category": ["ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Từ chỗ làm về nhà chỉ 6km nhưng 30-40 phút mới về tới nhà. Kẹt xe nặng quá chịu không nổi",
+    "category": ["ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Thành thật mà nói, Sài Gòn ùn tắc là cái khổ nhất khi sống ở đây",
+    "category": ["ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Sài Gòn đang rất cần một hệ thống tàu điện ngầm rộng khắp. Việc này sẽ giúp giảm tắc nghẽn, tiếng ồn và ô nhiễm",
+    "category": ["ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Đường vào cổng trường giờ tan học xe cộ xếp hàng dài hàng cây số, phụ huynh chờ đón con mà không có lối thoát",
+    "category": ["ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Nút giao thông Ngã Sáu Gò Vấp giờ cao điểm sáng ùn tắc kéo dài, người đi làm trễ hàng loạt",
+    "category": ["ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Xe máy lái chậm mà lái giữa đường. Xe buýt đi làn xe máy. Xe ô tô chuyển làn liên tục không xi nhan",
     "category": ["ý thức giao thông"],
     "priority": 1
   },
   {
-    "text": "Người dân Hà Nội hối hận vì vượt đèn đỏ, leo vỉa hè sau khi quên Nghị định 168.",
-    "category": ["đèn tín hiệu", "vỉa hè", "vi phạm luật"],
+    "text": "Ô tô, xe máy ngáng đường xe buýt khiến hành khách xuống xe giữa lòng đường",
+    "category": ["ý thức giao thông"],
     "priority": 1
   },
   {
-    "text": "Vỉa hè có... cũng như không, người dân lao động vẫn phải chen chúc buôn bán.",
-    "category": ["vỉa hè"],
+    "text": "Xe buýt ngổ ngáo chạy ẩu gây ám ảnh cho người tham gia giao thông",
+    "category": ["ý thức giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Người đi xe máy dừng đèn đỏ mà chen lấn hỗn loạn, vạch dừng xe chờ xem như không tồn tại",
+    "category": ["ý thức giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Tài xế ô tô đỗ xe giữa dốc cầu vượt để mua đồ ăn đường, xe phía sau phải phanh gấp suýt xảy ra tai nạn",
+    "category": ["ý thức giao thông"],
+    "priority": 2
+  },
+  {
+    "text": "Xe tải chở hàng quá khổ quá tải không có hộ tống chạy vào ban đêm trong khu đông dân cư",
+    "category": ["ý thức giao thông", "vi phạm luật"],
+    "priority": 2
+  },
+  {
+    "text": "Dealing with the street traffic here hasn't been easy but I've been getting better at it. There's definitely a lot of negotiation going around",
+    "category": ["ý thức giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Nghị định 168/2024 tăng mức phạt hàng chục lần khiến người dân không khỏi rùng mình, nhiều ý kiến cho rằng mức phạt chưa phù hợp với thu nhập trung bình",
+    "category": ["vi phạm luật"],
     "priority": 0
   },
   {
-    "text": "Xe buýt ngổ ngáo chạy ẩu gây ám ảnh cho người tham gia giao thông.",
-    "category": ["ý thức giao thông"],
+    "text": "Đã có luật thì phải thực thi nghiêm minh, không có ngoại lệ, người dân mới tâm phục khẩu phục",
+    "category": ["vi phạm luật"],
+    "priority": 0
+  },
+  {
+    "text": "Camera phạt nguội ghi nhận hàng trăm xe vượt đèn đỏ mỗi ngày tại nút giao thông Láng Hạ - Thái Hà",
+    "category": ["vi phạm luật"],
     "priority": 1
   },
   {
-    "text": "Sau khi áp dụng mức xử phạt mới, người dân bỏ thói quen rẽ phải khi đèn đỏ dẫn đến kẹt xe nghiêm trọng hơn.",
-    "category": ["đèn tín hiệu", "kẹt xe", "vi phạm luật"],
+    "text": "Cảnh sát giao thông xử phạt xe đi ngược chiều trên đường một chiều, nhiều người bị giữ bằng lái ngay tại chỗ",
+    "category": ["vi phạm luật"],
     "priority": 1
+  },
+  {
+    "text": "Người dân Hà Nội hối hận vì vượt đèn đỏ, leo vỉa hè sau khi bị xử phạt theo Nghị định 168",
+    "category": ["vi phạm luật", "đèn tín hiệu"],
+    "priority": 1
+  },
+  {
+    "text": "Xe ô tô đậu sai làn, không có biển cấm đỗ mà CSGT vẫn phạt, người dân bức xúc vì biển báo không rõ ràng",
+    "category": ["vi phạm luật", "Thiếu biển báo"],
+    "priority": 1
+  },
+  {
+    "text": "Vô pháp quá, chiếm vỉa hè công cộng để kinh doanh mà không ai xử lý",
+    "category": ["lấn chiếm vỉa hè"],
+    "priority": 1
+  },
+  {
+    "text": "Hàng quán bày biện bàn ghế kín vỉa hè, người đi bộ phải lách xuống lòng đường mà đi",
+    "category": ["lấn chiếm vỉa hè"],
+    "priority": 1
+  },
+  {
+    "text": "Xe máy leo vỉa hè tràn lan để tránh ùn tắc, người đi bộ không dám đi trên vỉa hè nữa",
+    "category": ["lấn chiếm vỉa hè", "ý thức giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Chủ nhà hàng mặc nhiên lấn vỉa hè làm bãi giữ xe thu tiền khách, UBND phường đã nhiều lần nhắc nhở không hiệu quả",
+    "category": ["lấn chiếm vỉa hè", "vi phạm luật"],
+    "priority": 1
+  },
+  {
+    "text": "Đừng dựa vào lý do kinh doanh để lấn chiếm vỉa hè trong khi đã có biết bao tai nạn xảy ra do vỉa hè bị chiếm dụng",
+    "category": ["lấn chiếm vỉa hè"],
+    "priority": 1
+  },
+  {
+    "text": "Cống rảnh ở đầu hẻm bị tắc nghẽn bởi rác thải và lá cây, mỗi khi mưa là nước tràn lên đường",
+    "category": ["cống rảnh", "ngập nước"],
+    "priority": 2
+  },
+  {
+    "text": "Nắp cống bị mất lâu ngày không ai thay thế, ban đêm xe máy đi qua bị sụt bánh xuống rất nguy hiểm",
+    "category": ["cống rảnh"],
+    "priority": 2
+  },
+  {
+    "text": "Cống thoát nước trên đường Nguyễn Văn Linh đã bị bùn đất lấp đầy, khi mưa lớn nước không thoát được gây ngập cục bộ",
+    "category": ["cống rảnh", "ngập nước"],
+    "priority": 2
+  },
+  {
+    "text": "Nắp cống nhô cao hơn mặt đường sau công trình sửa chữa, gây giật tay lái với xe máy đi nhanh",
+    "category": ["cống rảnh"],
+    "priority": 2
+  },
+  {
+    "text": "Hệ thống thoát nước đô thị quá cũ không đáp ứng được lưu lượng mưa hiện nay, cần đầu tư nâng cấp khẩn cấp",
+    "category": ["cống rảnh"],
+    "priority": 1
+  },
+  {
+    "text": "Mùi hôi từ cống thoát nước trên đường Điện Biên Phủ nồng nặc, ảnh hưởng nghiêm trọng đến sinh hoạt của người dân",
+    "category": ["cống rảnh"],
+    "priority": 1
+  },
+  {
+    "text": "Cầu vượt bị rạn nứt lan rộng ở trụ cầu nhưng đơn vị quản lý chưa có biện pháp xử lý, người dân lo ngại cho an toàn",
+    "category": ["cầu"],
+    "priority": 2
+  },
+  {
+    "text": "Mặt cầu bị bong tróc tạo ổ gà sâu, xe máy đi qua dễ bị văng ra ngoài đặc biệt khi trời mưa trơn trượt",
+    "category": ["cầu", "hư hỏng đường xá"],
+    "priority": 2
+  },
+  {
+    "text": "Cây cầu gỗ bắc qua kênh đã mục nát, người dân vẫn buộc phải đi vì đây là con đường duy nhất vào xóm",
+    "category": ["cầu"],
+    "priority": 2
+  },
+  {
+    "text": "Hành lang an toàn cầu bị người dân lấn chiếm để bày hàng buôn bán, gây nguy hiểm cho kết cấu cầu và người đi đường",
+    "category": ["cầu", "lấn chiếm vỉa hè"],
+    "priority": 1
+  },
+  {
+    "text": "Cầu dây văng mới xây đã xuất hiện vết nứt sau trận mưa lớn, chính quyền địa phương cần kiểm tra khẩn cấp",
+    "category": ["cầu"],
+    "priority": 2
+  },
+  {
+    "text": "Giới hạn tải trọng cầu chỉ 5 tấn nhưng xe tải hàng chục tấn vẫn qua mỗi ngày vì không có chốt kiểm soát",
+    "category": ["cầu", "vi phạm luật"],
+    "priority": 2
+  },
+  {
+    "text": "Xe máy lấn làn ô tô và ngược lại trên cầu vượt gây ùn tắc, không có vạch phân làn rõ ràng nên rất hỗn loạn",
+    "category": ["phân làn", "ùn tắc giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Cần phân làn riêng cho xe đạp điện và xe máy điện trên các tuyến đường lớn, hiện tại hai loại xe này chạy lộn xộn gây nguy hiểm",
+    "category": ["phân làn"],
+    "priority": 1
+  },
+  {
+    "text": "Đường Võ Văn Kiệt 6 làn xe nhưng không có vạch kẻ làn rõ ràng, xe cộ di chuyển lộn xộn đặc biệt giờ cao điểm",
+    "category": ["phân làn", "vạch kẻ đường"],
+    "priority": 1
+  },
+  {
+    "text": "Giải phân cách cứng trên đường Trường Chinh bị phá vỡ nhiều đoạn, xe cộ tự ý sang làn ngược chiều",
+    "category": ["phân làn"],
+    "priority": 2
+  },
+  {
+    "text": "Đường nội bộ khu đô thị mới thiếu phân làn cho người đi bộ và xe cơ giới, rất nguy hiểm vì không ai chịu nhường ai",
+    "category": ["phân làn"],
+    "priority": 1
+  },
+  {
+    "text": "Làn xe buýt nhanh BRT bị xe cá nhân lấn chiếm thường xuyên khiến xe buýt không thể di chuyển đúng giờ",
+    "category": ["phân làn", "ý thức giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Vạch dừng xe trước vạch kẻ đường đã mờ gần hết, lái xe không biết phải dừng ở đâu dẫn đến tình trạng dừng lấn vạch",
+    "category": ["vạch kẻ đường"],
+    "priority": 1
+  },
+  {
+    "text": "Vạch sang đường cho người đi bộ trên đường Lê Lợi đã bong tróc không nhìn thấy được, xe cơ giới không chú ý nhường đường",
+    "category": ["vạch kẻ đường"],
+    "priority": 2
+  },
+  {
+    "text": "Đường ngang dân sinh qua đường sắt không có vạch kẻ đường rõ ràng, người dân băng qua rất nguy hiểm",
+    "category": ["vạch kẻ đường"],
+    "priority": 2
+  },
+  {
+    "text": "Vạch kẻ đường mới sơn nhưng không đúng quy chuẩn, xe máy và ô tô vẫn không biết đi theo hướng nào",
+    "category": ["vạch kẻ đường"],
+    "priority": 1
+  },
+  {
+    "text": "Các vạch sơn phân làn trên đường Hoàng Quốc Việt đã mờ nhạt sau 3 năm không được sơn lại, ban đêm gần như không nhìn thấy",
+    "category": ["vạch kẻ đường"],
+    "priority": 1
+  },
+  {
+    "text": "Vạch zebra qua đường trước cổng trường tiểu học phụ huynh phản ánh đã mờ nhiều tháng, học sinh sang đường không ai nhường",
+    "category": ["vạch kẻ đường"],
+    "priority": 2
+  },
+  {
+    "text": "Trạm xe buýt mới xây dựng không có mái che, hành khách chờ xe giữa nắng mưa rất cực khổ",
+    "category": ["cơ sở vật chất giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Bến xe Miền Đông xuống cấp nghiêm trọng, nhà vệ sinh hư hỏng, ghế ngồi chờ không đủ cho hành khách, ánh sáng thiếu thốn",
+    "category": ["cơ sở vật chất giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Hệ thống đèn đường trên tuyến quốc lộ hư hỏng hàng loạt, ban đêm đường tối đen, tai nạn xảy ra liên miên",
+    "category": ["cơ sở vật chất giao thông", "tai nạn"],
+    "priority": 2
+  },
+  {
+    "text": "Gờ giảm tốc trước trường học bị mòn gần hết, xe cộ phóng nhanh không giảm tốc gây nguy hiểm cho học sinh",
+    "category": ["cơ sở vật chất giao thông"],
+    "priority": 2
+  },
+  {
+    "text": "Cầu bộ hành qua đường Điện Biên Phủ bị hỏng thang bộ nhiều tháng chưa sửa, người già và trẻ em không thể sử dụng",
+    "category": ["cơ sở vật chất giao thông"],
+    "priority": 2
+  },
+  {
+    "text": "Biển thông tin giờ xe chạy tại trạm buýt sai lệch so với thực tế, hành khách chờ mãi không thấy xe theo giờ đã đăng",
+    "category": ["cơ sở vật chất giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Camera giao thông trên đường Láng Hòa Lạc bị hỏng nhiều tháng không được sửa, vi phạm tốc độ gia tăng rõ rệt",
+    "category": ["cơ sở vật chất giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Cây xanh trồng trên dải phân cách đường Nguyễn Huệ bị bão đổ ngã ra lòng đường, gây ùn tắc và nguy hiểm",
+    "category": ["cảnh quan đô thị"],
+    "priority": 2
+  },
+  {
+    "text": "Hàng cây trên đường Bạch Đằng bị chặt phá không đúng quy trình làm mất đi bóng mát đặc trưng của con đường lịch sử",
+    "category": ["cảnh quan đô thị"],
+    "priority": 1
+  },
+  {
+    "text": "Cành cây to trên đường Hoàng Diệu bị mục rỗng, gió lớn có thể làm gãy rơi xuống đường bất cứ lúc nào, cần xử lý gấp",
+    "category": ["cảnh quan đô thị"],
+    "priority": 2
+  },
+  {
+    "text": "Hoa lá trang trí trung tâm thành phố bị héo úa vì không được tưới nước thường xuyên, mất đi vẻ mỹ quan đô thị",
+    "category": ["cảnh quan đô thị"],
+    "priority": 0
+  },
+  {
+    "text": "Rác thải đổ bừa bãi dưới gốc cây xanh gây mất vệ sinh và ảnh hưởng đến sức sống của cây",
+    "category": ["cảnh quan đô thị"],
+    "priority": 1
+  },
+  {
+    "text": "Biển báo bị cây che khuất hoàn toàn làm người lái xe không nhìn thấy, đề nghị cắt tỉa cây hoặc di dời biển",
+    "category": ["cảnh quan đô thị", "Thiếu biển báo"],
+    "priority": 1
+  },
+  {
+    "text": "Đống vật liệu xây dựng bỏ lại chiếm gần nửa lòng đường, xe cộ phải chạy vào làn ngược chiều tiềm ẩn nguy cơ tai nạn cao",
+    "category": ["vật cản"],
+    "priority": 2
+  },
+  {
+    "text": "Xe container hỏng máy nằm chắn giữa đường hơn 3 tiếng, không có biển cảnh báo, gây ùn tắc kéo dài cả km",
+    "category": ["vật cản", "ùn tắc giao thông"],
+    "priority": 2
+  },
+  {
+    "text": "Hố đào công trình thi công không có rào chắn và đèn cảnh báo ban đêm, xe máy đi qua suýt lao xuống hố",
+    "category": ["vật cản"],
+    "priority": 2
+  },
+  {
+    "text": "Cột điện bị xe tải húc đổ ngã ngang đường, điện vẫn còn dây chưa cắt, cực kỳ nguy hiểm cho người đi đường",
+    "category": ["vật cản"],
+    "priority": 2
+  },
+  {
+    "text": "Xe máy đỗ tràn lan trên lòng đường trước cổng chợ, người và xe khó lòng lưu thông, gây ùn tắc cục bộ mỗi buổi sáng",
+    "category": ["vật cản", "ý thức giao thông"],
+    "priority": 1
+  },
+  {
+    "text": "Cành cây bị gãy rơi xuống đường sau cơn mưa lớn, chiếm mất một làn đường, xe phải đi vòng sang làn bên gây hỗn loạn",
+    "category": ["vật cản", "cảnh quan đô thị"],
+    "priority": 2
+  },
+  {
+    "text": "Vật liệu thi công rải rác trên mặt đường chưa được dọn sạch, xe máy dễ trơn trượt ngã",
+    "category": ["vật cản"],
+    "priority": 2
   }
 ]
