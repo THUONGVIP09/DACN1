@@ -97,6 +97,26 @@ def predict_categories(text: str) -> tuple:
     
     return labels, round(float(confidence), 3)
 
+import math
+
+def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Tính khoảng cách địa lý Haversine (km) giữa hai tọa độ địa lý
+    """
+    if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
+        return float('inf')
+    R = 6371.0  # Bán kính Trái Đất (km)
+    
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    
+    a = math.sin(delta_phi / 2.0)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    
+    return R * c
+
 # Tạo thư mục lưu ảnh
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -217,9 +237,34 @@ async def submit_report_with_image(
             auto_approve = False
             combined_result = {"match_verdict": "Vision API Error - Manual Review"}
         
-        # ===== 3. DETERMINE STATUS =====
-        if auto_approve and entities["locations"]:
-            final_status = "Auto-Approved"
+        # ===== 3. DETERMINE STATUS & AUTO-DISPATCH (Grab model) =====
+        assigned_executor_id = None
+        dispatch_notes = None
+        
+        if final_confidence >= 0.85 and latitude is not None and longitude is not None:
+            # Tìm Đơn vị thực thi (Executor) phù hợp theo chuyên môn
+            executors = db.query(models.User).filter(
+                models.User.role == "executor",
+                models.User.specialty == primary_category
+            ).all()
+            
+            if executors:
+                nearest_exec = None
+                min_dist = float('inf')
+                for exec_user in executors:
+                    dist = calculate_distance(latitude, longitude, exec_user.base_latitude, exec_user.base_longitude)
+                    if dist < min_dist:
+                        min_dist = dist
+                        nearest_exec = exec_user
+                
+                if nearest_exec:
+                    assigned_executor_id = nearest_exec.id
+                    final_status = "Auto-Dispatched"
+                    dispatch_notes = f"Hệ thống AI tự động điều phối đến {nearest_exec.full_name} (Khoảng cách: {min_dist:.2f} km, Độ tin cậy: {(final_confidence*100):.0f}%)."
+                else:
+                    final_status = "Auto-Approved"
+            else:
+                final_status = "Auto-Approved"
         elif final_confidence >= 0.6:
             final_status = "Pending_Quick_Review"
         else:
@@ -245,6 +290,10 @@ async def submit_report_with_image(
             vision_confidence=vision_confidence,
             final_confidence=final_confidence,
             vision_labels=vision_labels_json,
+            
+            # Dispatch details
+            assigned_executor_id=assigned_executor_id,
+            dispatch_notes=dispatch_notes,
             
             # Reporter identity
             reporter_name=reporter_name,
@@ -448,6 +497,89 @@ def reject_report(id: int, db: Session = Depends(database.get_db)):
     db.commit()
     db.refresh(report)
     return report
+
+@app.post("/api/moderator/reports/{id}/dispatch", response_model=schemas.ReportResponse, tags=["Moderator"])
+def manual_dispatch_report(
+    id: int,
+    executor_id: int = Form(...),
+    notes: Optional[str] = Form(None),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Cán bộ điều phối thủ công bàn giao sự cố cho Executor phù hợp kèm ghi chú chỉ đạo thực tế
+    """
+    report = db.query(models.Report).filter(models.Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phản ánh")
+    
+    executor = db.query(models.User).filter(models.User.id == executor_id, models.User.role == "executor").first()
+    if not executor:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn vị thực thi phù hợp")
+    
+    report.assigned_executor_id = executor.id
+    report.status = "Assigned_Manually"
+    report.dispatch_notes = notes or f"Cán bộ điều phối thủ công bàn giao cho {executor.full_name}."
+    db.commit()
+    db.refresh(report)
+    return report
+
+@app.get("/api/moderator/executors", response_model=List[schemas.UserResponse], tags=["Moderator"])
+def get_executors_list(
+    specialty: Optional[str] = None,
+    db: Session = Depends(database.get_db)
+):
+    """
+    Lấy danh sách các Đơn vị thực thi (Executor) phục vụ tính toán và hiển thị cho cán bộ điều phối
+    """
+    query = db.query(models.User).filter(models.User.role == "executor")
+    if specialty:
+        query = query.filter(models.User.specialty == specialty)
+    return query.all()
+
+@app.post("/api/moderator/executors/create", response_model=schemas.UserResponse, tags=["Moderator"])
+def create_executor(
+    username: str = Form(...),
+    password: str = Form(...),
+    full_name: str = Form(...),
+    specialty: str = Form(...),
+    base_latitude: float = Form(...),
+    base_longitude: float = Form(...),
+    department: Optional[str] = Form(None),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Tạo mới tài khoản Executor (Chỉ Cán bộ điều phối tối cao mới có quyền)
+    """
+    existing = db.query(models.User).filter(models.User.username == username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Tên đăng nhập này đã tồn tại")
+    
+    new_user = models.User(
+        username=username,
+        hashed_password=hash_password(password),
+        role="executor",
+        specialty=specialty,
+        base_latitude=base_latitude,
+        base_longitude=base_longitude,
+        full_name=full_name,
+        department=department or "Đơn vị thực thi thực địa"
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@app.delete("/api/moderator/executors/{id}", tags=["Moderator"])
+def delete_executor(id: int, db: Session = Depends(database.get_db)):
+    """
+    Xóa tài khoản Executor (Chỉ Cán bộ điều phối tối cao mới có quyền)
+    """
+    executor = db.query(models.User).filter(models.User.id == id, models.User.role == "executor").first()
+    if not executor:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản đơn vị")
+    db.delete(executor)
+    db.commit()
+    return {"status": "success", "message": "Đã xóa tài khoản đơn vị thi công thành công"}
 
 # ===== RESOLUTION ENDPOINTS =====
 @app.post("/api/resolver/reports/{id}/status", response_model=schemas.ReportResponse, tags=["Resolver"])
