@@ -163,6 +163,42 @@ function getLocationForSubmit() {
   return { lat: null, lng: null };
 }
 
+// ── Client-Side Image Compression (Outdoor/4G Optimization) ──
+function compressImage(file, maxWidth = 1000, maxQuality = 0.8) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          resolve(compressedFile);
+        }, 'image/jpeg', maxQuality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ── Submit Report with Image (Mobile Optimized) ─────
 async function submitReportWithImage() {
   const text = document.getElementById('report-text').value.trim();
@@ -181,13 +217,16 @@ async function submitReportWithImage() {
   const btn = document.getElementById('submit-btn');
   const label = document.getElementById('btn-label');
   btn.disabled = true;
-  label.textContent = 'Đang phân tích AI...';
 
   try {
+    label.textContent = 'Đang nén tối ưu ảnh (4G)...';
+    const compressedImage = await compressImage(capturedImage);
+    
+    label.textContent = 'Đang phân tích AI...';
     // Build FormData cho multipart upload
     const formData = new FormData();
     formData.append('text', text);
-    formData.append('image', capturedImage);
+    formData.append('image', compressedImage);
     
     const loc = getLocationForSubmit();
     if (loc.lat !== null) {
