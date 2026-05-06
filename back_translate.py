@@ -160,7 +160,7 @@ def main():
 
     # Bước 1: Đọc dữ liệu
     print(f"\n[1] Đọc {INPUT_FILE} ...")
-    with open(INPUT_FILE, "r", encoding="utf-8") as f:
+    with open(INPUT_FILE, "r", encoding="utf-8-sig") as f:
         dataset: list[dict] = json.load(f)
     print(f"    Tổng mẫu hiện có: {len(dataset)}")
 
