@@ -384,14 +384,16 @@ def get_all_reports(
     limit: int = 50, 
     status: str = None,
     category: str = None,
+    assigned_executor_id: Optional[int] = None,
     db: Session = Depends(database.get_db)
 ):
     """
     Lấy danh sách các phản ánh đã lưu trong DB
     
     Query params:
-    - status: Lọc theo trạng thái (Auto-Approved, Pending_Quick_Review, Pending_Manual_Review)
+    - status: Lọc theo trạng thái
     - category: Lọc theo category
+    - assigned_executor_id: Lọc theo đơn vị thi công phụ trách
     """
     query = db.query(models.Report)
     
@@ -399,6 +401,8 @@ def get_all_reports(
         query = query.filter(models.Report.status == status)
     if category:
         query = query.filter(models.Report.predicted_categories.contains(category))
+    if assigned_executor_id is not None:
+        query = query.filter(models.Report.assigned_executor_id == assigned_executor_id)
     
     return query.order_by(models.Report.created_at.desc()).offset(skip).limit(limit).all()
 

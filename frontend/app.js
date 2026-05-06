@@ -588,7 +588,13 @@ async function loadResolverDashboard() {
   const searchVal = document.getElementById('res-search-input').value.trim().toLowerCase();
   
   try {
-    const res = await fetch(`${API}/reports/?limit=50&status=${filterVal}`);
+    let url = `${API}/reports/?limit=50`;
+    if (filterVal) url += `&status=${filterVal}`;
+    if (currentUser && currentUser.user_id) {
+      url += `&assigned_executor_id=${currentUser.user_id}`;
+    }
+    
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Không thể kết nối máy chủ');
     
     let reports = await res.json();
@@ -604,7 +610,7 @@ async function loadResolverDashboard() {
       container.innerHTML = `
         <div class="empty-state">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <p>Không tìm thấy sự cố nào cần xử lý phù hợp.</p>
+          <p>Hiện tại bạn không có nhiệm vụ xử lý sự cố nào phù hợp.</p>
         </div>
       `;
       return;
@@ -619,26 +625,37 @@ async function loadResolverDashboard() {
       let statusWord = 'Chờ xử lý';
       if (r.status === 'In_Progress') { badgeClass = 'badge-pending'; statusWord = 'Đang thi công 🚧'; }
       else if (r.status === 'Resolved') { badgeClass = 'badge-approved'; statusWord = 'Đã sửa xong ✔'; }
+      else if (r.status === 'Auto-Dispatched') { badgeClass = 'badge-pending'; statusWord = 'Được giao tự động (AI)'; }
+      else if (r.status === 'Assigned_Manually') { badgeClass = 'badge-pending'; statusWord = 'Cán bộ điều phối tay'; }
+      
+      let dispatchInfoHTML = '';
+      if (r.dispatch_notes) {
+        dispatchInfoHTML = `
+          <div style="margin-top:10px; background:rgba(37,99,235,0.03); border-left:3px solid var(--accent); padding:8px 12px; font-size:12px; color:var(--text-primary); border-radius:0 6px 6px 0;">
+            📢 <b>Chỉ thị từ Trung tâm:</b> <i>${r.dispatch_notes}</i>
+          </div>
+        `;
+      }
       
       let actionForm = '';
       if (r.status !== 'Resolved') {
         actionForm = `
           <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #e2e8f0;">
             <div class="form-group" style="margin-bottom:8px;">
-              <input type="text" id="res-note-${r.id}" class="form-input" style="min-height:36px; font-size:12px; padding:6px 12px;" placeholder="Nhập ghi chú thi công thực tế (Ví dụ: Đã vá ổ gà đường Lê Thiện Trị)..." value="${r.resolver_notes || ''}" />
+              <input type="text" id="res-note-${r.id}" class="form-input" style="min-height:36px; font-size:12px; padding:6px 12px;" placeholder="Nhập ghi chú thi công thực tế (Ví dụ: Đã xử lý thông luồng, dọn cát)..." value="${r.resolver_notes || ''}" />
             </div>
             <div style="display:flex; gap:8px;">
               ${r.status !== 'In_Progress' ? `
-                <button class="btn-gps" onclick="resolverAction(${r.id}, 'In_Progress')" style="min-height:36px; padding:6px 12px; font-size:12px; border-color:#d97706; color:#d97706;">🚧 Bắt đầu sửa chữa</button>
+                <button class="btn-gps" onclick="resolverAction(${r.id}, 'In_Progress')" style="min-height:36px; padding:6px 12px; font-size:12px; border-color:#d97706; color:#d97706; cursor:pointer;">🚧 Nhận việc & thi công</button>
               ` : ''}
-              <button class="btn-primary" onclick="resolverAction(${r.id}, 'Resolved')" style="min-height:36px; padding:6px 12px; font-size:12px; background:linear-gradient(135deg, #059669, #047857); box-shadow:none;">✔ Báo cáo Đã sửa xong</button>
+              <button class="btn-primary" onclick="resolverAction(${r.id}, 'Resolved')" style="min-height:36px; padding:6px 12px; font-size:12px; background:linear-gradient(135deg, #059669, #047857); box-shadow:none; cursor:pointer;">✔ Đóng sự cố (Sửa xong)</button>
             </div>
           </div>
         `;
       } else {
         actionForm = `
           <div style="margin-top:8px; padding:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12px; color:#15803d;">
-            <b>Ghi chú hoàn thành:</b> ${r.resolver_notes || 'Không có ghi chú'}
+            <b>Ghi chú hoàn thành thực tế:</b> ${r.resolver_notes || 'Không có ghi chú'}
           </div>
         `;
       }
@@ -649,13 +666,14 @@ async function loadResolverDashboard() {
           <div class="report-body">
             <p class="report-text" style="font-weight:600;">${r.raw_text}</p>
             <div class="report-meta" style="margin-top:6px;">
-              <span class="tag tag-location" style="background:#f1f5f9; color:#475569; border-color:#e2e8f0;">📍 Địa điểm: ${r.extracted_locations || 'Không rõ'}</span>
+              <span class="tag tag-location" style="background:#f1f5f9; color:#475569; border-color:#e2e8f0;">📍 Hiện trường: ${r.extracted_locations || 'Không rõ'}</span>
             </div>
             
             ${imageUrl ? `
               <img src="${imageUrl}" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px; margin-top:10px; border:1px solid #e2e8f0;" onclick="window.open('${imageUrl}')" />
             ` : ''}
             
+            ${dispatchInfoHTML}
             ${actionForm}
           </div>
           <div class="report-right">

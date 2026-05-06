@@ -305,10 +305,11 @@
             <input type="text" id="res-search-input" placeholder="Tìm kiếm sự cố đã duyệt..." oninput="loadResolverDashboard()" />
           </div>
           <select class="filter-select" id="res-filter-status" onchange="loadResolverDashboard()">
-            <option value="Approved_By_Mod">Đợi thi công (Approved)</option>
-            <option value="Auto-Approved">Đã duyệt tự động</option>
+            <option value="">Tất cả nhiệm vụ được giao</option>
+            <option value="Auto-Dispatched">Giao tự động (AI)</option>
+            <option value="Assigned_Manually">Cán bộ điều phối tay</option>
             <option value="In_Progress">Đang thi công xử lý</option>
-            <option value="Resolved">Đã sửa chữa xong</option>
+            <option value="Resolved">Đã hoàn thành sửa chữa</option>
           </select>
         </div>
         <button class="btn-refresh" onclick="loadResolverDashboard()">Làm mới</button>
