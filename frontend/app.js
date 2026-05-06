@@ -383,99 +383,32 @@ async function submitReportWithImage() {
 }
 
 function renderResultWithImage(report) {
+  // Ẩn form gửi phản ánh ban đầu
+  document.getElementById('submit-card').style.display = 'none';
+  
+  // Hiển thị thẻ thông báo thành công tinh tế
   const card = document.getElementById('result-card');
   card.style.display = 'flex';
   
-  // Status badge
-  const badge = document.getElementById('result-badge');
-  const badgeText = document.getElementById('result-status-text');
-  
-  if (report.status === 'Auto-Approved') {
-    badge.className = 'result-status-badge';
-    badgeText.textContent = '✓ Đã duyệt tự động';
-  } else {
-    badge.className = 'result-status-badge pending';
-    badgeText.textContent = '⏳ Đang chờ duyệt';
-  }
-  
-  // Combined score badge
-  const finalConf = report.final_confidence || 0;
-  const confDiv = document.getElementById('confidence-display');
-  
-  let confClass = 'low';
-  let confWord = 'Thấp';
-  if (finalConf >= 0.8) { confClass = 'high'; confWord = 'Cao'; }
-  else if (finalConf >= 0.5) { confClass = 'medium'; confWord = 'Vừa'; }
-  
-  confDiv.innerHTML = `
-    <div class="confidence-badge ${confClass}">
-      <span class="conf-value">${(finalConf * 100).toFixed(0)}%</span>
-      <span class="conf-label">Độ tin cậy ${confWord}</span>
-    </div>
-  `;
-  
-  // Image
-  if (report.image_path) {
-    const filename = report.image_path.split('/').pop();
-    document.getElementById('result-image-section').style.display = 'block';
-    document.getElementById('result-image').src = `${API}/uploads/${filename}`;
-  } else {
-    document.getElementById('result-image-section').style.display = 'none';
-  }
-  
-  // Raw text
-  document.getElementById('result-rawtext').textContent = report.raw_text;
-  
-  // Extracted categories
-  const catContainer = document.getElementById('result-categories');
-  catContainer.innerHTML = '';
-  if (report.predicted_categories) {
-    report.predicted_categories.split(', ').forEach(c => {
-      catContainer.innerHTML += `<span class="tag tag-category">${c}</span>`;
-    });
-  } else {
-    catContainer.innerHTML = '<span class="tag-empty">Không nhận diện được nhóm sự cố</span>';
-  }
-  
-  // Extracted locations
-  const locContainer = document.getElementById('result-locations');
-  locContainer.innerHTML = '';
-  if (report.extracted_locations) {
-    report.extracted_locations.split(' | ').forEach(l => {
-      locContainer.innerHTML += `<span class="tag tag-location">${l}</span>`;
-    });
-  } else {
-    locContainer.innerHTML = '<span class="tag-empty">Chưa xác định cụ thể địa chỉ</span>';
-  }
-  
-  // Times & Confidence
-  const timesContainer = document.getElementById('result-times');
-  timesContainer.innerHTML = '';
-  if (report.extracted_times) {
-    report.extracted_times.split(' | ').forEach(t => {
-      timesContainer.innerHTML += `<span class="tag tag-time">${t}</span>`;
-    });
-  } else {
-    timesContainer.innerHTML = '<span class="tag-empty">Vừa xong</span>';
-  }
-  
-  document.getElementById('result-confidence').textContent = `${(finalConf * 100).toFixed(1)}%`;
+  // Hiển thị Mã phản ánh số định dạng đẹp
   document.getElementById('result-id').textContent = `#RPT-${report.id.toString().padStart(5, '0')}`;
   
-  // Vision analysis tags
-  if (report.vision_labels) {
-    document.getElementById('vision-section').style.display = 'block';
-    const labelsDiv = document.getElementById('vision-labels');
-    labelsDiv.innerHTML = '';
-    JSON.parse(report.vision_labels).forEach(label => {
-      labelsDiv.innerHTML += `<span class="vision-tag">${label}</span>`;
-    });
-  } else {
-    document.getElementById('vision-section').style.display = 'none';
-  }
-  
-  // Smooth scroll to results
+  // Cuộn mượt mà đến thẻ kết quả thành công
   card.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetReporterForm() {
+  // Ẩn thẻ thông báo thành công
+  document.getElementById('result-card').style.display = 'none';
+  
+  // Hiển thị lại form nhập phản ánh ban đầu
+  document.getElementById('submit-card').style.display = 'block';
+  
+  // Reset toàn bộ dữ liệu form đầu vào
+  resetForm();
+  
+  // Cuộn mượt mà về đầu form phản ánh
+  document.getElementById('submit-card').scrollIntoView({ behavior: 'smooth' });
 }
 
 function resetForm() {
