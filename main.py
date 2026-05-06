@@ -492,7 +492,7 @@ async def startup_event():
     # 2. Seed Default Accounts
     try:
         db = database.SessionLocal()
-        # Seed Moderator
+        # Seed Moderator (Cán bộ điều phối)
         mod_user = db.query(models.User).filter(models.User.username == "moderator").first()
         if not mod_user:
             mod_user = models.User(
@@ -505,18 +505,53 @@ async def startup_event():
             db.add(mod_user)
             print("[Seed] Created default moderator account: moderator / moderator123")
             
-        # Seed Admin/Resolver
-        admin_user = db.query(models.User).filter(models.User.username == "admin").first()
-        if not admin_user:
-            admin_user = models.User(
-                username="admin",
-                hashed_password=hash_password("admin123"),
-                role="admin",
-                full_name="Quang Minh",
-                department="Đơn vị Quản lý Đô thị Công nghệ"
+        # Seed Executor 1: Sự cố hạ tầng & Đèn tín hiệu
+        exec_light = db.query(models.User).filter(models.User.username == "exec_light").first()
+        if not exec_light:
+            exec_light = models.User(
+                username="exec_light",
+                hashed_password=hash_password("exec123"),
+                role="executor",
+                specialty="Sự cố hạ tầng & Đèn tín hiệu",
+                base_latitude=16.0245,
+                base_longitude=108.2435,
+                full_name="Đội Thi công Cầu đường Ngũ Hành Sơn",
+                department="Xí nghiệp Chiếu sáng & Cầu đường Đà Nẵng"
             )
-            db.add(admin_user)
-            print("[Seed] Created default admin/resolver account: admin / admin123")
+            db.add(exec_light)
+            print("[Seed] Created executor account: exec_light / exec123")
+
+        # Seed Executor 2: Ngập nước / Triều cường
+        exec_water = db.query(models.User).filter(models.User.username == "exec_water").first()
+        if not exec_water:
+            exec_water = models.User(
+                username="exec_water",
+                hashed_password=hash_password("exec123"),
+                role="executor",
+                specialty="Ngập nước / Triều cường",
+                base_latitude=16.0612,
+                base_longitude=108.1921,
+                full_name="Đội Công trình Thoát nước Thanh Khê",
+                department="Công ty Thoát nước và Xử lý Nước thải Đà Nẵng"
+            )
+            db.add(exec_water)
+            print("[Seed] Created executor account: exec_water / exec123")
+
+        # Seed Executor 3: Ùn tắc giao thông
+        exec_traffic = db.query(models.User).filter(models.User.username == "exec_traffic").first()
+        if not exec_traffic:
+            exec_traffic = models.User(
+                username="exec_traffic",
+                hashed_password=hash_password("exec123"),
+                role="executor",
+                specialty="Ùn tắc giao thông",
+                base_latitude=16.0595,
+                base_longitude=108.2215,
+                full_name="Đội Điều phối Đô thị Hải Châu",
+                department="Trung tâm Điều hành Giao thông Đô thị Đà Nẵng"
+            )
+            db.add(exec_traffic)
+            print("[Seed] Created executor account: exec_traffic / exec123")
             
         db.commit()
         db.close()

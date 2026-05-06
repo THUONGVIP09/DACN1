@@ -27,6 +27,11 @@ class Report(Base):
     reporter_name = Column(String(100), nullable=True)
     reporter_phone = Column(String(50), nullable=True)
     
+    # Dispatch & Assign details (Grab model)
+    assigned_executor_id = Column(Integer, nullable=True)  # ID của người thi công được giao việc
+    dispatch_notes = Column(Text, nullable=True)  # Ghi chú chỉ đạo từ cán bộ điều phối
+    proof_image_path = Column(String(255), nullable=True)  # Ảnh minh chứng sau xử lý của Executor
+    
     # Resolver actual processing details
     resolver_notes = Column(Text, nullable=True)
     resolved_at = Column(DateTime, nullable=True)
@@ -41,7 +46,13 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(String(50), nullable=False)  # 'moderator' hoặc 'admin'
+    role = Column(String(50), nullable=False)  # 'moderator' (điều phối) hoặc 'executor' (thực thi)
+    
+    # Grab-Traffic Specific Fields
+    specialty = Column(String(100), nullable=True)  # Khớp trực tiếp với 8 nhãn dán trong dataset
+    base_latitude = Column(Float, nullable=True)  # Vĩ độ hoạt động
+    base_longitude = Column(Float, nullable=True)  # Kinh độ hoạt động
+    
     full_name = Column(String(100), nullable=True)
     department = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

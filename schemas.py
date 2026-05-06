@@ -32,6 +32,11 @@ class ReportResponse(BaseModel):
     reporter_name: Optional[str] = None
     reporter_phone: Optional[str] = None
     
+    # Dispatch Details
+    assigned_executor_id: Optional[int] = None
+    dispatch_notes: Optional[str] = None
+    proof_image_path: Optional[str] = None
+    
     # Resolver actual processing details
     resolver_notes: Optional[str] = None
     resolved_at: Optional[datetime.datetime] = None
@@ -71,6 +76,9 @@ class UserResponse(BaseModel):
     id: int
     username: str
     role: str
+    specialty: Optional[str] = None
+    base_latitude: Optional[float] = None
+    base_longitude: Optional[float] = None
     full_name: Optional[str] = None
     department: Optional[str] = None
 
