@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TrafficAI – Hệ Thống Phân Tích Giao Thông Đô Thị</title>
-  <meta name="description" content="Hệ thống thông minh tiếp nhận và phân tích phản ánh giao thông đô thị, ứng dụng AI để phân loại và trích xuất thực thể tự động." />
+  <title>TrafficAI – Cổng Thông Tin Giao Thông Đô Thị Đa Vai Trò</title>
+  <meta name="description" content="Hệ thống thông minh tiếp nhận và phân tích phản ánh giao thông đô thị, phân quyền 3 vai trò: Người dân, Cán bộ Kiểm duyệt và Đơn vị Xử lý." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css" />
@@ -16,8 +16,57 @@
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
 
-  <!-- ─── Header ─── -->
-  <header class="header">
+  <!-- ════════════ GATEWAY: CHỌN VAI TRÒ (LANDING PORTAL) ════════════ -->
+  <section class="portal-gateway" id="portal-gateway">
+    <div class="gateway-container">
+      <div class="gateway-hero">
+        <h1 class="gateway-title">Hệ Thống Phản Ánh <span class="gradient-text">TrafficAI</span></h1>
+        <p class="gateway-sub">Cổng thông tin đô thị số tiếp nhận, phân tích AI và điều phối khắc phục sự cố giao thông theo thời gian thực.</p>
+      </div>
+      
+      <div class="gateway-cards">
+        <!-- Card 1: Reporter -->
+        <div class="gateway-card glass-card" onclick="chooseRole('reporter')">
+          <div class="g-icon c-citizen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3>Người dân phản ánh</h3>
+          <p>Chụp ảnh, lấy GPS tự động gửi phản ánh tức thời không cần tài khoản. Yêu cầu nhập thông tin liên hệ.</p>
+          <span class="gateway-badge">Người dân</span>
+        </div>
+
+        <!-- Card 2: Moderator -->
+        <div class="gateway-card glass-card" onclick="openLogin('moderator')">
+          <div class="g-icon c-mod">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h3>Bộ phận Kiểm duyệt</h3>
+          <p>Phê duyệt thủ công các sự cố phức tạp do mô hình AI phân loại, quản lý danh sách tin chờ duyệt.</p>
+          <span class="gateway-badge badge-lock">Cán bộ Sở GTVT</span>
+        </div>
+
+        <!-- Card 3: Resolver -->
+        <div class="gateway-card glass-card" onclick="openLogin('admin')">
+          <div class="g-icon c-resolver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <h3>Đơn vị Thực địa & Admin</h3>
+          <p>Cập nhật tiến độ sửa chữa, khắc phục thực tế tại hiện trường sự cố và xem phân tích thống kê vĩ mô.</p>
+          <span class="gateway-badge badge-lock">Đơn vị Xử lý</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Header (Hidden by default, shown when inside a portal) ─── -->
+  <header class="header" id="main-header" style="display:none">
     <div class="header-inner">
       <div class="logo">
         <div class="logo-icon">
@@ -28,35 +77,27 @@
           </svg>
         </div>
         <div class="logo-text">
-          <span class="logo-title">TrafficAI</span>
-          <span class="logo-sub">Smart City Platform</span>
+          <span class="logo-title" id="header-portal-title">TrafficAI</span>
+          <span class="logo-sub" id="header-user-info">Smart City Platform</span>
         </div>
       </div>
-      <nav class="nav">
-        <button class="nav-btn active" id="nav-submit" onclick="switchTab('submit')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Gửi phản ánh
-        </button>
-        <button class="nav-btn" id="nav-dashboard" onclick="switchTab('dashboard')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Bảng điều khiển
-        </button>
-      </nav>
+      
       <div class="header-status">
-        <span class="status-dot"></span>
-        <span class="status-text">Hệ thống đang hoạt động</span>
+        <button class="btn-refresh" onclick="logout()" style="border-color:#fca5a5; background:#fef2f2; color:#b91c1c;">
+          Đăng xuất / Quay lại ←
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- ─── Main ─── -->
-  <main class="main">
+  <!-- ─── Main Content (Hidden by default) ─── -->
+  <main class="main" id="main-content" style="display:none">
 
-    <!-- ════════════ TAB: GỬI PHẢN ÁNH ════════════ -->
-    <section class="tab-content active" id="tab-submit">
+    <!-- ════════════ ROLE: REPORTER (GỬI PHẢN ÁNH) ════════════ -->
+    <section class="tab-content" id="portal-reporter-view">
       <div class="page-hero">
         <h1 class="hero-title">Phản ánh <span class="gradient-text">Giao thông</span></h1>
-        <p class="hero-sub">Mô tả sự cố bạn chứng kiến. AI sẽ tự động phân loại và chuyển đến đơn vị xử lý phù hợp trong vài giây.</p>
+        <p class="hero-sub">Hãy gửi ảnh chụp và vị trí thực tế của sự cố. Công nghệ AI của chúng tôi sẽ tự động hóa xử lý trong tích tắc.</p>
       </div>
 
       <div class="submit-layout">
@@ -68,7 +109,7 @@
             </div>
             <div>
               <h2 class="card-title">Mô tả sự cố</h2>
-              <p class="card-desc">Hãy viết chi tiết để AI phân tích chính xác hơn</p>
+              <p class="card-desc" id="reporter-display-name">Người dân đang phản ánh</p>
             </div>
           </div>
 
@@ -89,41 +130,40 @@
               </div>
               
               <div class="camera-actions" id="camera-actions" style="display:none">
-                <button type="button" class="btn-secondary" onclick="retakePhoto()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                  Chụp lại
+                <button type="button" class="btn-gps" style="border-color:#cbd5e1" onclick="retakePhoto()">
+                  Chụp lại ảnh khác
                 </button>
               </div>
             </div>
-            <p class="camera-note">Ảnh sẽ được AI phân tích để xác nhận sự cố</p>
+            <p class="camera-note">Ảnh được nén tự động để truyền tải cực nhanh qua 4G</p>
           </div>
 
           <!-- GPS Location -->
           <div class="form-group location-group">
-            <label class="form-label">📍 Vị trí</label>
+            <label class="form-label">📍 Vị trí sự cố</label>
             <div class="location-container">
               <button type="button" class="btn-gps" id="btn-gps" onclick="getCurrentLocation()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
-                <span id="gps-text">Lấy vị trí tự động</span>
+                <span id="gps-text">Lấy vị trí tự động bằng GPS</span>
               </button>
               <div class="location-manual" id="location-manual" style="display:none">
-                <input type="text" id="location-text" class="form-input" placeholder="Hoặc nhập địa điểm thủ công..." />
+                <input type="text" id="location-text" class="form-input" placeholder="Nhập địa chỉ thủ công nếu định vị lỗi..." />
               </div>
               <div class="location-status" id="location-status"></div>
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="report-text">📝 Mô tả chi tiết <span class="required">*</span></label>
+            <label class="form-label" for="report-text">📝 Mô tả chi tiết sự cố <span class="required">*</span></label>
             <div class="textarea-wrap">
-              <textarea id="report-text" class="form-textarea" rows="4"
-                placeholder="Ví dụ: Kẹt xe nghiêm trọng, xe cộ không di chuyển được..."></textarea>
+              <textarea id="report-text" class="form-textarea" rows="3"
+                placeholder="Ví dụ: Đường ngập nước sâu hơn nửa mét, kẹt xe cục bộ kéo dài..."></textarea>
               <div class="char-count"><span id="char-count">0</span> / 500</div>
             </div>
           </div>
 
           <div class="example-chips">
-            <span class="chip-label">Ví dụ nhanh:</span>
+            <span class="chip-label">Gợi ý nhanh:</span>
             <button class="chip" onclick="fillExample(0)">🌊 Ngập nước</button>
             <button class="chip" onclick="fillExample(1)">🚗 Kẹt xe</button>
             <button class="chip" onclick="fillExample(2)">💥 Tai nạn</button>
@@ -135,7 +175,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             <span id="btn-label">Gửi phản ánh & Phân tích AI</span>
           </button>
-          <p class="form-note">✓ Ảnh và vị trí GPS sẽ được AI phân tích để xác nhận độ chính xác</p>
         </div>
 
         <!-- Result Card -->
@@ -143,29 +182,29 @@
           <div class="result-header">
             <div class="result-status-badge" id="result-badge">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="result-status-text">Auto-Approved</span>
+              <span id="result-status-text">Đã duyệt tự động</span>
             </div>
             <div class="confidence-score" id="confidence-display"></div>
           </div>
 
           <!-- Image Result -->
           <div class="result-section" id="result-image-section" style="display:none">
-            <p class="result-label">📷 Ảnh đã gửi</p>
+            <p class="result-label">📷 Ảnh sự cố</p>
             <img id="result-image" class="result-image" alt="Ảnh sự cố" />
           </div>
 
           <div class="result-section">
-            <p class="result-label">📋 Văn bản gốc</p>
+            <p class="result-label">📋 Nội dung phản ánh</p>
             <p class="result-value" id="result-rawtext"></p>
           </div>
 
           <div class="result-row">
             <div class="result-section">
-              <p class="result-label">🏷️ Phân loại AI</p>
+              <p class="result-label">🏷️ Phân loại sự cố</p>
               <div class="tag-list" id="result-categories"></div>
             </div>
             <div class="result-section">
-              <p class="result-label">📍 Địa điểm</p>
+              <p class="result-label">📍 Địa điểm trích xuất</p>
               <div class="tag-list" id="result-locations"></div>
             </div>
           </div>
@@ -176,103 +215,164 @@
               <div class="tag-list" id="result-times"></div>
             </div>
             <div class="result-section">
-              <p class="result-label">🎯 Độ tin cậy</p>
+              <p class="result-label">🎯 Độ tin cậy AI</p>
               <p class="result-value mono" id="result-confidence"></p>
             </div>
           </div>
 
           <div class="result-section vision-section" id="vision-section" style="display:none">
-            <p class="result-label">🔍 Phân tích ảnh AI</p>
+            <p class="result-label">🔍 Phân tích ngữ cảnh ảnh</p>
             <div class="vision-labels" id="vision-labels"></div>
           </div>
 
           <div class="result-section">
-            <p class="result-label"># Mã phản ánh</p>
+            <p class="result-label"># Mã phản ánh số</p>
             <p class="result-value mono" id="result-id"></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Row -->
-      <div class="stats-row" id="stats-row">
-        <div class="stat-card glass-card">
-          <div class="stat-icon s1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="stat-total">—</div>
-            <div class="stat-label">Tổng phản ánh</div>
-          </div>
-        </div>
-        <div class="stat-card glass-card">
-          <div class="stat-icon s2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="stat-approved">—</div>
-            <div class="stat-label">Auto-Approved</div>
-          </div>
-        </div>
-        <div class="stat-card glass-card">
-          <div class="stat-icon s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="stat-pending">—</div>
-            <div class="stat-label">Chờ duyệt thủ công</div>
-          </div>
-        </div>
-        <div class="stat-card glass-card">
-          <div class="stat-icon s4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="stat-rate">—</div>
-            <div class="stat-label">Tỷ lệ tự động duyệt</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ════════════ TAB: DASHBOARD ════════════ -->
-    <section class="tab-content" id="tab-dashboard">
+    <!-- ════════════ ROLE: MODERATOR (KIỂM DUYỆT VIÊN) ════════════ -->
+    <section class="tab-content" id="portal-moderator-view">
       <div class="page-hero">
-        <h1 class="hero-title">Bảng <span class="gradient-text">Điều Khiển</span></h1>
-        <p class="hero-sub">Theo dõi và quản lý toàn bộ phản ánh giao thông đô thị theo thời gian thực.</p>
+        <h1 class="hero-title">Phê Duyệt <span class="gradient-text">Báo Cáo</span></h1>
+        <p class="hero-sub">Kiểm duyệt thủ công các phản ánh chờ duyệt. Hệ thống đã tối ưu hóa gợi ý bằng AI ở bên dưới.</p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row" style="margin-bottom:24px;">
+        <div class="stat-card glass-card">
+          <div class="stat-icon s1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="mod-stat-total">—</div>
+            <div class="stat-label">Tổng số phản ánh</div>
+          </div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="mod-stat-pending">—</div>
+            <div class="stat-label">Chờ duyệt thủ công</div>
+          </div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon s2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="mod-stat-approved">—</div>
+            <div class="stat-label">Đã phê duyệt</div>
+          </div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon s4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-value" id="mod-stat-rejected">—</div>
+            <div class="stat-label">Đã từ chối</div>
+          </div>
+        </div>
       </div>
 
       <div class="dashboard-toolbar glass-card">
         <div class="toolbar-left">
           <div class="search-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="search-input" placeholder="Tìm kiếm phản ánh..." oninput="filterReports()" />
+            <input type="text" id="mod-search-input" placeholder="Tìm kiếm nhanh phản ánh..." oninput="loadModeratorDashboard()" />
           </div>
-          <select class="filter-select" id="filter-status" onchange="filterReports()">
+          <select class="filter-select" id="mod-filter-status" onchange="loadModeratorDashboard()">
+            <option value="Pending_Manual_Review">Chờ duyệt thủ công</option>
             <option value="">Tất cả trạng thái</option>
-            <option value="Auto-Approved">Auto-Approved</option>
-            <option value="Pending_Manual_Review">Chờ duyệt</option>
-          </select>
-          <select class="filter-select" id="filter-category" onchange="filterReports()">
-            <option value="">Tất cả loại sự cố</option>
-            <option>Ùn tắc giao thông</option>
-            <option>Tai nạn giao thông</option>
-            <option>Ngập nước / Triều cường</option>
-            <option>Sự cố hạ tầng & Đèn tín hiệu</option>
-            <option>Chướng ngại vật & Sự cố bất ngờ</option>
-            <option>Công trình thi công / Lô cốt</option>
-            <option>Lấn chiếm vỉa hè & Lòng đường</option>
-            <option>Vi phạm & Ý thức giao thông</option>
+            <option value="Auto-Approved">Đã duyệt tự động</option>
+            <option value="Approved_By_Mod">Cán bộ phê duyệt</option>
+            <option value="Rejected_By_Mod">Cán bộ từ chối</option>
           </select>
         </div>
-        <button class="btn-refresh" onclick="loadDashboard()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Làm mới
-        </button>
+        <button class="btn-refresh" onclick="loadModeratorDashboard()">Làm mới dữ liệu</button>
       </div>
 
-      <div class="reports-list" id="reports-list">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Đang tải dữ liệu...</p>
+      <div class="reports-list" id="mod-reports-list">
+        <!-- Renders dynamically -->
+      </div>
+    </section>
+
+    <!-- ════════════ ROLE: RESOLVER (ĐƠN VỊ XỬ LÝ HIỆN TRƯỜNG) ════════════ -->
+    <section class="tab-content" id="portal-resolver-view">
+      <div class="page-hero">
+        <h1 class="hero-title">Khắc Phục <span class="gradient-text">Sự Cố</span></h1>
+        <p class="hero-sub">Điều phối và cập nhật tiến trình thi công sửa chữa thực địa cho các phản ánh đã duyệt.</p>
+      </div>
+
+      <div class="dashboard-toolbar glass-card">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="res-search-input" placeholder="Tìm kiếm sự cố đã duyệt..." oninput="loadResolverDashboard()" />
+          </div>
+          <select class="filter-select" id="res-filter-status" onchange="loadResolverDashboard()">
+            <option value="Approved_By_Mod">Đợi thi công (Approved)</option>
+            <option value="Auto-Approved">Đã duyệt tự động</option>
+            <option value="In_Progress">Đang thi công xử lý</option>
+            <option value="Resolved">Đã sửa chữa xong</option>
+          </select>
         </div>
+        <button class="btn-refresh" onclick="loadResolverDashboard()">Làm mới</button>
+      </div>
+
+      <div class="reports-list" id="res-reports-list">
+        <!-- Renders dynamically -->
       </div>
     </section>
 
   </main>
 
-  <!-- ─── Toast notification ─── -->
+  <!-- ════════════ MODAL: ĐĂNG NHẬP CÁN BỘ ════════════ -->
+  <div class="modal" id="login-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:grid; place-items:center; z-index:9999;">
+    <div class="modal-content glass-card" style="max-width:400px; width:90%; position:relative;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3 id="login-title" style="font-size:1.25rem; font-weight:800; color:var(--text-primary)">Đăng nhập</h3>
+        <button onclick="closeLogin()" style="background:none; border:none; font-size:1.75rem; color:var(--text-muted); cursor:pointer;">&times;</button>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Tên đăng nhập</label>
+        <input type="text" id="login-username" class="form-input" placeholder="Nhập username..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu</label>
+        <input type="password" id="login-password" class="form-input" placeholder="Nhập mật khẩu..." />
+      </div>
+      
+      <button class="btn-primary" onclick="submitLogin()" style="margin-top:1rem;">Đăng nhập hệ thống</button>
+      <p style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:1rem; font-weight:500;">
+        Tài khoản: <b>moderator</b> / <b>moderator123</b><br>hoặc <b>admin</b> / <b>admin123</b>
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════ MODAL: NHẬP THÔNG TIN REPORTER ════════════ -->
+  <div class="modal" id="reporter-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:grid; place-items:center; z-index:9999;">
+    <div class="modal-content glass-card" style="max-width:400px; width:90%;">
+      <h3 style="font-size:1.25rem; font-weight:800; color:var(--text-primary); margin-bottom:0.75rem;">Xác nhận người phản ánh</h3>
+      <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1.25rem; line-height:1.5;">
+        Nhập Họ tên và SĐT của bạn trước khi tiếp tục. Thông tin này giúp cán bộ liên hệ xác nhận thực tế và hạn chế phản ánh troll, quấy rối.
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label">Họ và tên người gửi <span class="required">*</span></label>
+        <input type="text" id="reporter-name" class="form-input" placeholder="Ví dụ: Hoài Thương" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Số điện thoại liên hệ <span class="required">*</span></label>
+        <input type="tel" id="reporter-phone" class="form-input" placeholder="Ví dụ: 0905123456" />
+      </div>
+      
+      <div style="display:flex; gap:8px; margin-top:1rem;">
+        <button class="btn-gps" style="flex:1;" onclick="closeReporterModal()">Hủy</button>
+        <button class="btn-primary" style="flex:2;" onclick="submitReporterIdentity()">Xác nhận & Bắt đầu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Toast Notification ─── -->
   <div class="toast" id="toast"></div>
 
   <script src="/static/app.js"></script>

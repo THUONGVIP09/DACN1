@@ -131,7 +131,9 @@ def submit_report(report: schemas.ReportCreate, db: Session = Depends(database.g
         status=final_status,
         latitude=report.latitude,
         longitude=report.longitude,
-        nlp_confidence=nlp_confidence
+        nlp_confidence=nlp_confidence,
+        reporter_name=report.reporter_name,
+        reporter_phone=report.reporter_phone
     )
     db.add(db_report)
     db.commit()
@@ -145,6 +147,8 @@ async def submit_report_with_image(
     text: str = Form(..., description="Nội dung mô tả sự cố"),
     latitude: Optional[float] = Form(None, description="Vĩ độ GPS"),
     longitude: Optional[float] = Form(None, description="Kinh độ GPS"),
+    reporter_name: Optional[str] = Form(None, description="Họ tên người dân"),
+    reporter_phone: Optional[str] = Form(None, description="SĐT người dân"),
     image: UploadFile = File(..., description="Ảnh sự cố (chụp từ điện thoại)"),
     db: Session = Depends(database.get_db)
 ):
@@ -240,7 +244,11 @@ async def submit_report_with_image(
             nlp_confidence=nlp_confidence,
             vision_confidence=vision_confidence,
             final_confidence=final_confidence,
-            vision_labels=vision_labels_json
+            vision_labels=vision_labels_json,
+            
+            # Reporter identity
+            reporter_name=reporter_name,
+            reporter_phone=reporter_phone
         )
         
         db.add(db_report)
@@ -393,13 +401,125 @@ def serve_uploaded_image(filename: str):
     raise HTTPException(status_code=404, detail="Image not found")
 
 
-# Startup event - check Vision API
+# Password hashing helper (Simple SHA256)
+import hashlib
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# ===== AUTHENTICATION & LOGIN =====
+@app.post("/api/auth/login", tags=["Auth"])
+def login(user_data: schemas.UserLogin, db: Session = Depends(database.get_db)):
+    """Đăng nhập hệ thống cho Moderator và Admin/Resolver"""
+    user = db.query(models.User).filter(models.User.username == user_data.username).first()
+    if not user or user.hashed_password != hash_password(user_data.password):
+        raise HTTPException(status_code=401, detail="Sai tên đăng nhập hoặc mật khẩu")
+    
+    return {
+        "status": "success",
+        "user_id": user.id,
+        "username": user.username,
+        "role": user.role,
+        "full_name": user.full_name,
+        "department": user.department,
+        "token": f"mock-token-for-{user.username}"
+    }
+
+# ===== MODERATION ENDPOINTS =====
+@app.post("/api/moderator/reports/{id}/approve", response_model=schemas.ReportResponse, tags=["Moderator"])
+def approve_report(id: int, db: Session = Depends(database.get_db)):
+    """Moderator duyệt phản ánh thủ công"""
+    report = db.query(models.Report).filter(models.Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phản ánh")
+    
+    report.status = "Approved_By_Mod"
+    db.commit()
+    db.refresh(report)
+    return report
+
+@app.post("/api/moderator/reports/{id}/reject", response_model=schemas.ReportResponse, tags=["Moderator"])
+def reject_report(id: int, db: Session = Depends(database.get_db)):
+    """Moderator từ chối phản ánh thủ công"""
+    report = db.query(models.Report).filter(models.Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phản ánh")
+    
+    report.status = "Rejected_By_Mod"
+    db.commit()
+    db.refresh(report)
+    return report
+
+# ===== RESOLUTION ENDPOINTS =====
+@app.post("/api/resolver/reports/{id}/status", response_model=schemas.ReportResponse, tags=["Resolver"])
+def update_resolver_status(
+    id: int, 
+    status: str = Form(...), # "In_Progress" hoặc "Resolved"
+    notes: Optional[str] = Form(None), 
+    db: Session = Depends(database.get_db)
+):
+    """Đơn vị xử lý cập nhật tiến độ khắc phục thực tế"""
+    report = db.query(models.Report).filter(models.Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phản ánh")
+    
+    if status not in ["In_Progress", "Resolved"]:
+        raise HTTPException(status_code=400, detail="Trạng thái không hợp lệ")
+    
+    report.status = status
+    if notes:
+        report.resolver_notes = notes
+    
+    if status == "Resolved":
+        report.resolved_at = datetime.datetime.utcnow()
+        
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+# Startup event - check Vision API & seed accounts
 @app.on_event("startup")
 async def startup_event():
-    """Check Vision API on startup"""
+    """Check Vision API on startup & seed Moderator and Admin accounts"""
+    # 1. Check Vision API
     try:
         client = get_vision_client()
         print("[OK] Google Vision API connected successfully")
     except Exception as e:
         print(f"[WARN] Google Vision API connection failed: {e}")
         print("[INFO] Reports with images will fallback to NLP-only analysis")
+
+    # 2. Seed Default Accounts
+    try:
+        db = database.SessionLocal()
+        # Seed Moderator
+        mod_user = db.query(models.User).filter(models.User.username == "moderator").first()
+        if not mod_user:
+            mod_user = models.User(
+                username="moderator",
+                hashed_password=hash_password("moderator123"),
+                role="moderator",
+                full_name="Hoài Thương",
+                department="Sở Giao thông Vận tải Đà Nẵng"
+            )
+            db.add(mod_user)
+            print("[Seed] Created default moderator account: moderator / moderator123")
+            
+        # Seed Admin/Resolver
+        admin_user = db.query(models.User).filter(models.User.username == "admin").first()
+        if not admin_user:
+            admin_user = models.User(
+                username="admin",
+                hashed_password=hash_password("admin123"),
+                role="admin",
+                full_name="Quang Minh",
+                department="Đơn vị Quản lý Đô thị Công nghệ"
+            )
+            db.add(admin_user)
+            print("[Seed] Created default admin/resolver account: admin / admin123")
+            
+        db.commit()
+        db.close()
+    except Exception as e:
+        print(f"[WARN] Failed to seed default accounts: {e}")
+

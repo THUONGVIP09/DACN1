@@ -6,6 +6,8 @@ class ReportCreate(BaseModel):
     text: str
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    reporter_name: Optional[str] = None
+    reporter_phone: Optional[str] = None
 
 class ReportResponse(BaseModel):
     id: int
@@ -25,6 +27,14 @@ class ReportResponse(BaseModel):
     vision_confidence: Optional[float] = None
     final_confidence: Optional[float] = None
     vision_labels: Optional[str] = None
+    
+    # Reporter details
+    reporter_name: Optional[str] = None
+    reporter_phone: Optional[str] = None
+    
+    # Resolver actual processing details
+    resolver_notes: Optional[str] = None
+    resolved_at: Optional[datetime.datetime] = None
     
     created_at: datetime.datetime
     updated_at: Optional[datetime.datetime] = None
@@ -50,3 +60,24 @@ class CombinedAnalysisResponse(BaseModel):
     final_confidence: float
     auto_approve: bool
     status: str
+
+
+# Authentication schemas
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    role: str
+    full_name: Optional[str] = None
+    department: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+

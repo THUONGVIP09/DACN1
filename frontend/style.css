@@ -595,3 +595,136 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ════════════ PORTAL GATEWAY STYLES ════════════ */
+.portal-gateway {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.gateway-container {
+  max-width: 1000px;
+  width: 100%;
+}
+.gateway-hero {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+.gateway-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+.gateway-sub {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.gateway-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.gateway-card {
+  padding: 32px 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--glass-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.gateway-card:hover {
+  transform: translateY(-8px);
+  border-color: #2563eb;
+  box-shadow: 0 20px 25px -5px rgba(37,99,235,0.08), 0 10px 10px -5px rgba(37,99,235,0.03);
+}
+.g-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  transition: var(--transition);
+}
+.g-icon svg {
+  width: 32px;
+  height: 32px;
+}
+.c-citizen { background: #eff6ff; color: #2563eb; }
+.c-mod { background: #ecfdf5; color: #10b981; }
+.c-resolver { background: #fffbeb; color: #d97706; }
+
+.gateway-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+.gateway-card p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+.gateway-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+.badge-lock {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+}
+
+/* ════════════ MODALS STYLES ════════════ */
+.modal-content {
+  padding: 32px !important;
+  border: 1.5px solid var(--glass-border) !important;
+  box-shadow: 0 25px 50px -12px rgba(15,23,42,0.15) !important;
+  animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalScale {
+  from { transform: scale(0.9) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.modal-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+.login-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* ════════════ RESPONSIVE GATEWAY ════════════ */
+@media (max-width: 768px) {
+  .gateway-cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .gateway-title {
+    font-size: 2rem;
+  }
+}
+
