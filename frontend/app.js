@@ -104,8 +104,7 @@ function submitReporterIdentity() {
 // ── Officer Authentication (Login) ─────────────────────
 function openLogin(role) {
   currentLoginRoleTarget = role;
-  const title = role === 'moderator' ? 'Đăng nhập Cán bộ Kiểm duyệt' : 'Đăng nhập Đơn vị Xử lý';
-  document.getElementById('login-title').textContent = title;
+  document.getElementById('login-title').textContent = 'Đăng Nhập';
   document.getElementById('login-modal').style.display = 'grid';
 }
 
@@ -204,37 +203,87 @@ function updateCharCount() {
 document.getElementById('report-text').addEventListener('input', updateCharCount);
 
 // ── Camera & Image handling ─────────────────────────
+let capturedImages = [];
+
 function handleImageCapture(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
   
-  if (!file.type.startsWith('image/')) {
+  const validFiles = files.filter(f => f.type.startsWith('image/'));
+  if (validFiles.length === 0) {
     showToast('Vui lòng chọn tệp ảnh hợp lệ.', 'error');
     return;
   }
   
-  capturedImage = file;
+  capturedImages = [...capturedImages, ...validFiles].slice(0, 4); // Giới hạn tối đa 4 ảnh
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const preview = document.getElementById('camera-preview');
+  preview.innerHTML = '';
+  preview.style.display = 'flex';
+  preview.style.flexWrap = 'wrap';
+  preview.style.gap = '8px';
   
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const preview = document.getElementById('camera-preview');
-    preview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview" />`;
-    document.getElementById('camera-actions').style.display = 'flex';
-    showToast('Đã chụp và nạp ảnh sự cố.', 'success');
-  };
-  reader.readAsDataURL(file);
+  capturedImages.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const container = document.createElement('div');
+      container.className = 'preview-item';
+      container.style.position = 'relative';
+      container.style.width = '70px';
+      container.style.height = '70px';
+      container.style.borderRadius = '8px';
+      container.style.overflow = 'hidden';
+      container.style.border = '1px solid var(--slate-200)';
+      
+      container.innerHTML = `
+        <img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;" />
+        <button onclick="removeImage(${index}, event)" style="position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:50%; background:rgba(220,38,38,0.85); color:white; border:none; font-size:11px; display:grid; place-items:center; cursor:pointer; font-weight:bold;">&times;</button>
+      `;
+      preview.appendChild(container);
+    };
+    reader.readAsDataURL(file);
+  });
+  
+  if (capturedImages.length < 4) {
+    const addBtn = document.createElement('div');
+    addBtn.style.width = '70px';
+    addBtn.style.height = '70px';
+    addBtn.style.borderRadius = '8px';
+    addBtn.style.border = '2px dashed var(--slate-300)';
+    addBtn.style.display = 'grid';
+    addBtn.style.placeItems = 'center';
+    addBtn.style.cursor = 'pointer';
+    addBtn.innerHTML = '<span style="font-size:24px; color:var(--text-muted); font-weight:300;">+</span>';
+    addBtn.onclick = () => document.getElementById('camera-input').click();
+    preview.appendChild(addBtn);
+  }
+  
+  document.getElementById('camera-actions').style.display = 'flex';
+}
+
+function removeImage(index, event) {
+  event.stopPropagation();
+  capturedImages.splice(index, 1);
+  if (capturedImages.length === 0) {
+    retakePhoto();
+  } else {
+    renderPreviews();
+  }
 }
 
 function retakePhoto() {
-  capturedImage = null;
+  capturedImages = [];
   const preview = document.getElementById('camera-preview');
   preview.innerHTML = `
     <div class="camera-placeholder" onclick="document.getElementById('camera-input').click()">
       <div class="camera-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
       </div>
-      <p>Chạm để chụp ảnh</p>
-      <span class="camera-hint">Hoặc chọn từ thư viện</span>
+      <p>Chạm để chụp / tải ảnh</p>
+      <span class="camera-hint">Bạn có thể chọn tải lên nhiều ảnh</span>
     </div>
   `;
   document.getElementById('camera-actions').style.display = 'none';
@@ -317,6 +366,67 @@ function getCurrentLocation() {
 }
 
 // ── Reporter Submit Report with Image ───────────────
+function createCollageAndCompress(files) {
+  return new Promise((resolve) => {
+    if (files.length === 1) {
+      compressImage(files[0]).then(resolve);
+      return;
+    }
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const promises = files.map(file => {
+      return new Promise((resImg) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => resImg(img);
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+    
+    Promise.all(promises).then(images => {
+      let cols = 2;
+      let rows = images.length > 2 ? 2 : 1;
+      
+      const singleW = 500;
+      const singleH = 500;
+      
+      canvas.width = cols * singleW;
+      canvas.height = rows * singleH;
+      
+      images.forEach((img, index) => {
+        const x = (index % cols) * singleW;
+        const y = Math.floor(index / cols) * singleH;
+        
+        const imgRatio = img.width / img.height;
+        const targetRatio = singleW / singleH;
+        let drawW, drawH, sx = 0, sy = 0;
+        
+        if (imgRatio > targetRatio) {
+          drawH = img.height;
+          drawW = img.height * targetRatio;
+          sx = (img.width - drawW) / 2;
+        } else {
+          drawW = img.width;
+          drawH = img.width / targetRatio;
+          sy = (img.height - drawH) / 2;
+        }
+        
+        ctx.drawImage(img, sx, sy, drawW, drawH, x, y, singleW, singleH);
+      });
+      
+      canvas.toBlob((blob) => {
+        const file = new File([blob], "collage.jpg", { type: 'image/jpeg' });
+        resolve(file);
+      }, 'image/jpeg', 0.85);
+    });
+  });
+}
+
 async function submitReportWithImage() {
   const text = document.getElementById('report-text').value.trim();
   
@@ -325,8 +435,8 @@ async function submitReportWithImage() {
     return;
   }
   
-  if (!capturedImage) {
-    showToast('Vui lòng chụp ảnh sự cố hiện trường.', 'error');
+  if (capturedImages.length === 0) {
+    showToast('Vui lòng chụp hoặc chọn tải ảnh sự cố hiện trường.', 'error');
     return;
   }
   
@@ -336,9 +446,9 @@ async function submitReportWithImage() {
   
   try {
     label.textContent = 'Đang tối ưu dung lượng ảnh (4G)...';
-    const compressedImage = await compressImage(capturedImage);
+    const compressedImage = await createCollageAndCompress(capturedImages);
     
-    label.textContent = 'Đang gửi & Chờ AI phân tích...';
+    label.textContent = 'Đang gửi & Chờ xử lý...';
     
     const formData = new FormData();
     formData.append('text', text);
@@ -474,36 +584,26 @@ async function loadModeratorDashboard() {
       const reporterLabel = (r.reporter_name && r.reporter_phone) ? `<b>Người gửi:</b> ${r.reporter_name} (${r.reporter_phone})` : '<b>Người gửi:</b> <i>Ẩn danh (Vô danh)</i>';
       
       let badgeClass = 'badge-pending';
-      let statusWord = 'Đang Chờ Duyệt';
-      if (r.status === 'Auto-Approved') { badgeClass = 'badge-approved'; statusWord = 'Tự Động Duyệt'; }
-      else if (r.status === 'Approved_By_Mod') { badgeClass = 'badge-approved'; statusWord = 'Cán bộ đã duyệt'; }
-      else if (r.status === 'Rejected_By_Mod') { badgeClass = 'badge-pending'; statusWord = 'Cán bộ từ chối'; }
-      else if (r.status === 'Auto-Dispatched') { badgeClass = 'badge-approved'; statusWord = 'Tự động Điều phối (AI)'; }
-      else if (r.status === 'Assigned_Manually') { badgeClass = 'badge-approved'; statusWord = 'Cán bộ điều phối tay'; }
-      else if (r.status === 'In_Progress') { badgeClass = 'badge-approved'; statusWord = 'Đang sửa chữa'; }
-      else if (r.status === 'Resolved') { badgeClass = 'badge-approved'; statusWord = 'Sửa chữa thành công'; }
+      let statusWord = 'đang chờ bàn giao';
+      if (r.status === 'Pending_Manual_Review' || r.status === 'Pending_Quick_Review') { badgeClass = 'badge-pending'; statusWord = 'đang chờ bàn giao'; }
+      else if (r.status === 'Auto-Dispatched') { badgeClass = 'badge-approved'; statusWord = 'đã bàn giao tự động (AI)'; }
+      else if (r.status === 'Assigned_Manually') { badgeClass = 'badge-approved'; statusWord = 'đã bàn giao'; }
+      else if (r.status === 'In_Progress') { badgeClass = 'badge-pending'; statusWord = 'đang chờ xử lý'; }
+      else if (r.status === 'Resolved') { badgeClass = 'badge-approved'; statusWord = 'đã xử lý'; }
       
       const parsedLabels = r.vision_labels ? JSON.parse(r.vision_labels) : [];
       const visionLabelsHTML = parsedLabels.map(l => `<span class="vision-tag">${l}</span>`).join('');
       
-      let actionButtons = '';
-      const primaryCat = r.predicted_categories ? r.predicted_categories.split(', ')[0] : 'Sự cố hạ tầng & Đèn tín hiệu';
+      const primaryCat = r.predicted_categories ? r.predicted_categories.split(', ')[0] : 'hư hỏng đường xá';
       
-      if (r.status === 'Pending_Manual_Review' || r.status === 'Pending_Quick_Review') {
-        actionButtons = `
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
-            <button class="btn-primary" onclick="moderatorDecision(${r.id}, 'approve')" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, #059669, #047857); box-shadow:none;">✓ Duyệt lưu trữ</button>
-            <button class="btn-primary" onclick="openDispatchModal(${r.id}, '${primaryCat}', ${r.latitude || 'null'}, ${r.longitude || 'null'})" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, var(--accent), #1d4ed8); box-shadow:none;">⚙ Bàn giao việc</button>
-            <button class="btn-primary" onclick="moderatorDecision(${r.id}, 'reject')" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, #dc2626, #b91c1c); box-shadow:none;">&times; Từ chối</button>
-          </div>
-        `;
-      } else if (r.status === 'Auto-Approved' || r.status === 'Approved_By_Mod') {
-        actionButtons = `
-          <div style="display:flex; gap:8px; margin-top:12px;">
-            <button class="btn-primary" onclick="openDispatchModal(${r.id}, '${primaryCat}', ${r.latitude || 'null'}, ${r.longitude || 'null'})" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, var(--accent), #1d4ed8); box-shadow:none;">⚙ Bàn giao việc</button>
-          </div>
-        `;
-      }
+      let actionButtons = `
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          ${(r.status !== 'Resolved') ? `
+            <button class="btn-primary" onclick="openDispatchModal(${r.id}, '${primaryCat}', ${r.latitude || 'null'}, ${r.longitude || 'null'})" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, var(--accent), #1d4ed8); box-shadow:none; cursor:pointer;">⚙ Bàn giao việc</button>
+          ` : ''}
+          <button class="btn-primary" onclick="deleteReport(${r.id})" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, #dc2626, #b91c1c); box-shadow:none; cursor:pointer;">&times; Xóa</button>
+        </div>
+      `;
       
       let assignmentInfoHTML = '';
       if (r.assigned_executor_id) {
@@ -567,6 +667,22 @@ async function moderatorDecision(id, action) {
   }
 }
 
+async function deleteReport(id) {
+  if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn phản ánh #${id} khỏi hệ thống không?`)) {
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/api/moderator/reports/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Không thể xóa phản ánh');
+    showToast(`Đã xóa phản ánh #${id} thành công!`, 'success');
+    loadModeratorDashboard();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
 function updateModStats(reports, statusFilter) {
   document.getElementById('mod-stat-total').textContent = reports.length;
   
@@ -589,7 +705,7 @@ async function loadResolverDashboard() {
   
   try {
     let url = `${API}/reports/?limit=50`;
-    if (filterVal) url += `&status=${filterVal}`;
+    if (filterVal && filterVal !== 'pending') url += `&status=${filterVal}`;
     if (currentUser && currentUser.user_id) {
       url += `&assigned_executor_id=${currentUser.user_id}`;
     }
@@ -598,6 +714,10 @@ async function loadResolverDashboard() {
     if (!res.ok) throw new Error('Không thể kết nối máy chủ');
     
     let reports = await res.json();
+    
+    if (filterVal === 'pending') {
+      reports = reports.filter(r => r.status !== 'Resolved');
+    }
     
     if (searchVal) {
       reports = reports.filter(r => 
@@ -712,6 +832,12 @@ async function resolverAction(id, targetStatus) {
 }
 
 // ── Moderator Dispatch & Executor Management (Premium Giai đoạn 4) ──
+let editingExecutorId = null;
+
+function viewExecutor(exec) {
+  alert(`🔍 CHI TIẾT ĐƠN VỊ:\n\n• Tài khoản: ${exec.username}\n• Tên đội / Đơn vị: ${exec.full_name}\n• Chuyên môn dán nhãn: ${exec.specialty}\n• GPS Cơ sở: ${exec.base_latitude?.toFixed(5)}, ${exec.base_longitude?.toFixed(5)}\n• Ghi chú (SĐT, Địa chỉ): ${exec.department || 'Không có ghi chú'}`);
+}
+
 async function loadExecutorsList() {
   try {
     const res = await fetch(`${API}/api/moderator/executors`);
@@ -722,11 +848,12 @@ async function loadExecutorsList() {
     tbody.innerHTML = '';
     
     if (executors.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:var(--text-muted);">Chưa có đơn vị thực địa nào đăng ký</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:var(--text-muted);">Chưa có đơn vị nào được đăng ký</td></tr>';
       return;
     }
     
     executors.forEach(exec => {
+      const execStr = JSON.stringify(exec).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
       tbody.innerHTML += `
         <tr style="border-bottom:1px solid var(--slate-100); color:var(--text-primary);">
           <td style="padding:12px 10px; font-weight:bold;">${exec.username}</td>
@@ -734,7 +861,9 @@ async function loadExecutorsList() {
           <td style="padding:12px 10px;"><span class="tag tag-category">${exec.specialty}</span></td>
           <td style="padding:12px 10px; font-family:monospace;">${exec.base_latitude?.toFixed(4)}, ${exec.base_longitude?.toFixed(4)}</td>
           <td style="padding:12px 10px; text-align:center;">
-            <button class="btn-gps" style="border-color:#fca5a5; color:#b91c1c; background:#fef2f2; padding:4px 8px; font-size:0.75rem; cursor:pointer;" onclick="deleteExecutor(${exec.id})">Thu hồi</button>
+            <button class="btn-gps" style="border-color:var(--accent); color:var(--accent); background:rgba(37,99,235,0.05); padding:4px 8px; font-size:0.75rem; cursor:pointer;" onclick='viewExecutor(${execStr})'>Xem</button>
+            <button class="btn-gps" style="border-color:#d97706; color:#d97706; background:rgba(217,119,6,0.05); padding:4px 8px; font-size:0.75rem; cursor:pointer; margin-left:4px;" onclick='openCreateExecutorModal(${execStr})'>Sửa</button>
+            <button class="btn-gps" style="border-color:#ef4444; color:#ef4444; background:rgba(239,68,68,0.05); padding:4px 8px; font-size:0.75rem; cursor:pointer; margin-left:4px;" onclick='deleteExecutor(${exec.id})'>Xóa</button>
           </td>
         </tr>
       `;
@@ -744,17 +873,37 @@ async function loadExecutorsList() {
   }
 }
 
-function openCreateExecutorModal() {
+function openCreateExecutorModal(exec = null) {
+  if (exec) {
+    editingExecutorId = exec.id;
+    document.getElementById('exec-modal-title').textContent = 'Cập nhật đơn vị';
+    document.getElementById('new-exec-username').value = exec.username;
+    document.getElementById('new-exec-fullname').value = exec.full_name;
+    document.getElementById('new-exec-specialty').value = exec.specialty;
+    document.getElementById('new-exec-notes').value = exec.department === 'Đơn vị thực tế thực địa' ? '' : exec.department;
+    document.getElementById('new-exec-lat').value = exec.base_latitude;
+    document.getElementById('new-exec-lng').value = exec.base_longitude;
+    
+    document.getElementById('exec-username-group').style.display = 'none';
+    document.getElementById('exec-password-group').style.display = 'none';
+  } else {
+    editingExecutorId = null;
+    document.getElementById('exec-modal-title').textContent = 'Thêm Đơn Vị mới';
+    document.getElementById('new-exec-username').value = '';
+    document.getElementById('new-exec-password').value = '';
+    document.getElementById('new-exec-fullname').value = '';
+    document.getElementById('new-exec-notes').value = '';
+    document.getElementById('new-exec-lat').value = '';
+    document.getElementById('new-exec-lng').value = '';
+    
+    document.getElementById('exec-username-group').style.display = 'block';
+    document.getElementById('exec-password-group').style.display = 'block';
+  }
   document.getElementById('create-executor-modal').style.display = 'grid';
 }
 
 function closeCreateExecutorModal() {
   document.getElementById('create-executor-modal').style.display = 'none';
-  document.getElementById('new-exec-username').value = '';
-  document.getElementById('new-exec-password').value = '';
-  document.getElementById('new-exec-fullname').value = '';
-  document.getElementById('new-exec-lat').value = '';
-  document.getElementById('new-exec-lng').value = '';
 }
 
 async function submitCreateExecutor() {
@@ -762,34 +911,47 @@ async function submitCreateExecutor() {
   const password = document.getElementById('new-exec-password').value;
   const full_name = document.getElementById('new-exec-fullname').value.trim();
   const specialty = document.getElementById('new-exec-specialty').value;
+  const notes = document.getElementById('new-exec-notes').value.trim();
   const lat = parseFloat(document.getElementById('new-exec-lat').value);
   const lng = parseFloat(document.getElementById('new-exec-lng').value);
   
-  if (!username || !password || !full_name || isNaN(lat) || isNaN(lng)) {
-    showToast('Vui lòng nhập đầy đủ tất cả các trường dữ liệu.', 'error');
+  if (!full_name || isNaN(lat) || isNaN(lng)) {
+    showToast('Vui lòng điền đầy đủ các thông tin bắt buộc.', 'error');
+    return;
+  }
+  
+  if (!editingExecutorId && (!username || !password)) {
+    showToast('Tên đăng nhập và mật khẩu khởi tạo là bắt buộc khi tạo mới.', 'error');
     return;
   }
   
   try {
     const formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
     formData.append('full_name', full_name);
     formData.append('specialty', specialty);
+    formData.append('department', notes || 'Đơn vị thực tế thực địa');
     formData.append('base_latitude', lat);
     formData.append('base_longitude', lng);
     
-    const res = await fetch(`${API}/api/moderator/executors/create`, {
+    let url = `${API}/api/moderator/executors/create`;
+    if (editingExecutorId) {
+      url = `${API}/api/moderator/executors/${editingExecutorId}/update`;
+    } else {
+      formData.append('username', username);
+      formData.append('password', password);
+    }
+    
+    const res = await fetch(url, {
       method: 'POST',
       body: formData
     });
     
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.detail || 'Không thể tạo tài khoản');
+      throw new Error(err.detail || 'Không thể lưu thông tin đơn vị');
     }
     
-    showToast('Đã tạo tài khoản Đơn vị Thực địa thành công!', 'success');
+    showToast(editingExecutorId ? 'Cập nhật thông tin đơn vị thành công!' : 'Tạo mới tài khoản Đơn vị thành công!', 'success');
     closeCreateExecutorModal();
     loadExecutorsList();
   } catch (err) {
@@ -798,11 +960,11 @@ async function submitCreateExecutor() {
 }
 
 async function deleteExecutor(id) {
-  if (!confirm('Bạn có chắc chắn muốn thu hồi tài khoản này không? Đơn vị này sẽ không thể làm việc nữa.')) return;
+  if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đơn vị thi công này không? Hành động này không thể hoàn tác.')) return;
   try {
     const res = await fetch(`${API}/api/moderator/executors/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Không thể thu hồi tài khoản');
-    showToast('Đã thu hồi tài khoản đơn vị thành công.', 'success');
+    if (!res.ok) throw new Error('Không thể xóa đơn vị');
+    showToast('Đã xóa đơn vị thành công!', 'success');
     loadExecutorsList();
   } catch (err) {
     showToast(err.message, 'error');
