@@ -478,16 +478,39 @@ async function loadModeratorDashboard() {
       if (r.status === 'Auto-Approved') { badgeClass = 'badge-approved'; statusWord = 'Tự Động Duyệt'; }
       else if (r.status === 'Approved_By_Mod') { badgeClass = 'badge-approved'; statusWord = 'Cán bộ đã duyệt'; }
       else if (r.status === 'Rejected_By_Mod') { badgeClass = 'badge-pending'; statusWord = 'Cán bộ từ chối'; }
+      else if (r.status === 'Auto-Dispatched') { badgeClass = 'badge-approved'; statusWord = 'Tự động Điều phối (AI)'; }
+      else if (r.status === 'Assigned_Manually') { badgeClass = 'badge-approved'; statusWord = 'Cán bộ điều phối tay'; }
+      else if (r.status === 'In_Progress') { badgeClass = 'badge-approved'; statusWord = 'Đang sửa chữa'; }
+      else if (r.status === 'Resolved') { badgeClass = 'badge-approved'; statusWord = 'Sửa chữa thành công'; }
       
       const parsedLabels = r.vision_labels ? JSON.parse(r.vision_labels) : [];
       const visionLabelsHTML = parsedLabels.map(l => `<span class="vision-tag">${l}</span>`).join('');
       
       let actionButtons = '';
+      const primaryCat = r.predicted_categories ? r.predicted_categories.split(', ')[0] : 'Sự cố hạ tầng & Đèn tín hiệu';
+      
       if (r.status === 'Pending_Manual_Review' || r.status === 'Pending_Quick_Review') {
         actionButtons = `
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+            <button class="btn-primary" onclick="moderatorDecision(${r.id}, 'approve')" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, #059669, #047857); box-shadow:none;">✓ Duyệt lưu trữ</button>
+            <button class="btn-primary" onclick="openDispatchModal(${r.id}, '${primaryCat}', ${r.latitude || 'null'}, ${r.longitude || 'null'})" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, var(--accent), #1d4ed8); box-shadow:none;">⚙ Bàn giao việc</button>
+            <button class="btn-primary" onclick="moderatorDecision(${r.id}, 'reject')" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, #dc2626, #b91c1c); box-shadow:none;">&times; Từ chối</button>
+          </div>
+        `;
+      } else if (r.status === 'Auto-Approved' || r.status === 'Approved_By_Mod') {
+        actionButtons = `
           <div style="display:flex; gap:8px; margin-top:12px;">
-            <button class="btn-primary" onclick="moderatorDecision(${r.id}, 'approve')" style="padding:8px 16px; font-size:12px; min-height:36px; background:linear-gradient(135deg, #059669, #047857); box-shadow:none;">✓ Phê duyệt</button>
-            <button class="btn-primary" onclick="moderatorDecision(${r.id}, 'reject')" style="padding:8px 16px; font-size:12px; min-height:36px; background:linear-gradient(135deg, #dc2626, #b91c1c); box-shadow:none;">&times; Từ chối</button>
+            <button class="btn-primary" onclick="openDispatchModal(${r.id}, '${primaryCat}', ${r.latitude || 'null'}, ${r.longitude || 'null'})" style="padding:8px 12px; font-size:11px; min-height:32px; background:linear-gradient(135deg, var(--accent), #1d4ed8); box-shadow:none;">⚙ Bàn giao việc</button>
+          </div>
+        `;
+      }
+      
+      let assignmentInfoHTML = '';
+      if (r.assigned_executor_id) {
+        assignmentInfoHTML = `
+          <div style="margin-top:10px; background:rgba(37,99,235,0.04); border:1px dashed rgba(37,99,235,0.2); border-radius:6px; padding:10px 12px; font-size:12px; color:var(--text-primary);">
+            <p style="margin-bottom:4px; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:4px;">👷 ĐƠN VỊ THỰC ĐỊA ĐANG PHỤ TRÁCH:</p>
+            <p style="line-height:1.4;">• <b>ID Đơn vị:</b> Đội thi công #${r.assigned_executor_id}<br>• <b>Chỉ thị điều phối:</b> <i>${r.dispatch_notes || 'Không có ghi chú thêm.'}</i></p>
           </div>
         `;
       }
@@ -513,6 +536,7 @@ async function loadModeratorDashboard() {
               </div>
             ` : ''}
             
+            ${assignmentInfoHTML}
             ${actionButtons}
           </div>
           <div class="report-right">
@@ -536,7 +560,7 @@ async function moderatorDecision(id, action) {
     
     if (!res.ok) throw new Error(`Lỗi cập nhật ${action}`);
     
-    showToast(`Đã ${action === 'approve' ? 'Phê duyệt' : 'Từ chối'} thành công báo cáo #${id}!`, 'success');
+    showToast(`Đã duyệt lưu trữ báo cáo #${id} thành công!`, 'success');
     loadModeratorDashboard();
   } catch (err) {
     showToast(err.message, 'error');
@@ -544,11 +568,10 @@ async function moderatorDecision(id, action) {
 }
 
 function updateModStats(reports, statusFilter) {
-  // Mock counts or summarize based on current load
   document.getElementById('mod-stat-total').textContent = reports.length;
   
-  const pending = reports.filter(r => r.status === 'Pending_Manual_Review').length;
-  const approved = reports.filter(r => r.status === 'Approved_By_Mod' || r.status === 'Auto-Approved').length;
+  const pending = reports.filter(r => r.status === 'Pending_Manual_Review' || r.status === 'Pending_Quick_Review').length;
+  const approved = reports.filter(r => r.status === 'Approved_By_Mod' || r.status === 'Auto-Approved' || r.status === 'Auto-Dispatched' || r.status === 'Assigned_Manually' || r.status === 'In_Progress' || r.status === 'Resolved').length;
   const rejected = reports.filter(r => r.status === 'Rejected_By_Mod').length;
   
   document.getElementById('mod-stat-pending').textContent = pending;
@@ -665,6 +688,194 @@ async function resolverAction(id, targetStatus) {
     
     showToast(`Đã cập nhật sự cố #${id} sang trạng thái thành công!`, 'success');
     loadResolverDashboard();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ── Moderator Dispatch & Executor Management (Premium Giai đoạn 4) ──
+async function loadExecutorsList() {
+  try {
+    const res = await fetch(`${API}/api/moderator/executors`);
+    if (!res.ok) throw new Error('Không thể tải danh sách đơn vị');
+    const executors = await res.json();
+    
+    const tbody = document.getElementById('moderator-executors-tbody');
+    tbody.innerHTML = '';
+    
+    if (executors.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:var(--text-muted);">Chưa có đơn vị thực địa nào đăng ký</td></tr>';
+      return;
+    }
+    
+    executors.forEach(exec => {
+      tbody.innerHTML += `
+        <tr style="border-bottom:1px solid var(--slate-100); color:var(--text-primary);">
+          <td style="padding:12px 10px; font-weight:bold;">${exec.username}</td>
+          <td style="padding:12px 10px;">${exec.full_name}</td>
+          <td style="padding:12px 10px;"><span class="tag tag-category">${exec.specialty}</span></td>
+          <td style="padding:12px 10px; font-family:monospace;">${exec.base_latitude?.toFixed(4)}, ${exec.base_longitude?.toFixed(4)}</td>
+          <td style="padding:12px 10px; text-align:center;">
+            <button class="btn-gps" style="border-color:#fca5a5; color:#b91c1c; background:#fef2f2; padding:4px 8px; font-size:0.75rem; cursor:pointer;" onclick="deleteExecutor(${exec.id})">Thu hồi</button>
+          </td>
+        </tr>
+      `;
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function openCreateExecutorModal() {
+  document.getElementById('create-executor-modal').style.display = 'grid';
+}
+
+function closeCreateExecutorModal() {
+  document.getElementById('create-executor-modal').style.display = 'none';
+  document.getElementById('new-exec-username').value = '';
+  document.getElementById('new-exec-password').value = '';
+  document.getElementById('new-exec-fullname').value = '';
+  document.getElementById('new-exec-lat').value = '';
+  document.getElementById('new-exec-lng').value = '';
+}
+
+async function submitCreateExecutor() {
+  const username = document.getElementById('new-exec-username').value.trim();
+  const password = document.getElementById('new-exec-password').value;
+  const full_name = document.getElementById('new-exec-fullname').value.trim();
+  const specialty = document.getElementById('new-exec-specialty').value;
+  const lat = parseFloat(document.getElementById('new-exec-lat').value);
+  const lng = parseFloat(document.getElementById('new-exec-lng').value);
+  
+  if (!username || !password || !full_name || isNaN(lat) || isNaN(lng)) {
+    showToast('Vui lòng nhập đầy đủ tất cả các trường dữ liệu.', 'error');
+    return;
+  }
+  
+  try {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    formData.append('full_name', full_name);
+    formData.append('specialty', specialty);
+    formData.append('base_latitude', lat);
+    formData.append('base_longitude', lng);
+    
+    const res = await fetch(`${API}/api/moderator/executors/create`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Không thể tạo tài khoản');
+    }
+    
+    showToast('Đã tạo tài khoản Đơn vị Thực địa thành công!', 'success');
+    closeCreateExecutorModal();
+    loadExecutorsList();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function deleteExecutor(id) {
+  if (!confirm('Bạn có chắc chắn muốn thu hồi tài khoản này không? Đơn vị này sẽ không thể làm việc nữa.')) return;
+  try {
+    const res = await fetch(`${API}/api/moderator/executors/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Không thể thu hồi tài khoản');
+    showToast('Đã thu hồi tài khoản đơn vị thành công.', 'success');
+    loadExecutorsList();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function openDispatchModal(reportId, primaryCategory, reportLat, reportLng) {
+  document.getElementById('dispatch-report-id').value = reportId;
+  document.getElementById('dispatch-notes-input').value = '';
+  
+  const select = document.getElementById('dispatch-executor-select');
+  select.innerHTML = '<option>Đang tải danh sách đơn vị thi công...</option>';
+  
+  try {
+    const res = await fetch(`${API}/api/moderator/executors?specialty=${encodeURIComponent(primaryCategory)}`);
+    if (!res.ok) throw new Error('Không thể lấy danh sách Executor');
+    const executors = await res.json();
+    
+    if (executors.length === 0) {
+      select.innerHTML = '<option value="">Không có đơn vị nào chuyên môn phù hợp!</option>';
+      document.getElementById('dispatch-modal').style.display = 'grid';
+      return;
+    }
+    
+    executors.forEach(exec => {
+      if (reportLat && reportLng && exec.base_latitude && exec.base_longitude) {
+        exec.distance = calculateHaversineDistance(reportLat, reportLng, exec.base_latitude, exec.base_longitude);
+      } else {
+        exec.distance = null;
+      }
+    });
+    
+    executors.sort((a, b) => {
+      if (a.distance === null) return 1;
+      if (b.distance === null) return -1;
+      return a.distance - b.distance;
+    });
+    
+    select.innerHTML = '';
+    executors.forEach(exec => {
+      const distLabel = exec.distance !== null ? `(Cách hiện trường: ${exec.distance.toFixed(2)} km)` : '(Không có GPS)';
+      select.innerHTML += `<option value="${exec.id}">${exec.full_name} ${distLabel}</option>`;
+    });
+  } catch (err) {
+    console.error(err);
+    select.innerHTML = '<option value="">Có lỗi xảy ra khi tải đơn vị</option>';
+  }
+  
+  document.getElementById('dispatch-modal').style.display = 'grid';
+}
+
+function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function closeDispatchModal() {
+  document.getElementById('dispatch-modal').style.display = 'none';
+}
+
+async function submitManualDispatch() {
+  const reportId = document.getElementById('dispatch-report-id').value;
+  const execId = document.getElementById('dispatch-executor-select').value;
+  const notes = document.getElementById('dispatch-notes-input').value.trim();
+  
+  if (!execId) {
+    showToast('Vui lòng chọn đơn vị thi công phù hợp.', 'error');
+    return;
+  }
+  
+  try {
+    const formData = new FormData();
+    formData.append('executor_id', execId);
+    if (notes) formData.append('notes', notes);
+    
+    const res = await fetch(`${API}/api/moderator/reports/${reportId}/dispatch`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!res.ok) throw new Error('Có lỗi xảy ra khi bàn giao việc');
+    
+    showToast('Đã bàn giao sự cố thực địa thành công!', 'success');
+    closeDispatchModal();
+    loadModeratorDashboard();
   } catch (err) {
     showToast(err.message, 'error');
   }

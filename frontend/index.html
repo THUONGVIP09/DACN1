@@ -248,9 +248,11 @@
           <select class="filter-select" id="mod-filter-status" onchange="loadModeratorDashboard()">
             <option value="Pending_Manual_Review">Chờ duyệt thủ công</option>
             <option value="">Tất cả trạng thái</option>
-            <option value="Auto-Approved">Đã duyệt tự động</option>
-            <option value="Approved_By_Mod">Cán bộ phê duyệt</option>
-            <option value="Rejected_By_Mod">Cán bộ từ chối</option>
+            <option value="Auto-Dispatched">Tự động điều phối (AI)</option>
+            <option value="Assigned_Manually">Cán bộ điều phối thủ công</option>
+            <option value="In_Progress">Đang xử lý hiện trường</option>
+            <option value="Resolved">Sự cố đã khắc phục xong</option>
+            <option value="Rejected_By_Mod">Cán bộ đã từ chối</option>
           </select>
         </div>
         <button class="btn-refresh" onclick="loadModeratorDashboard()">Làm mới dữ liệu</button>
@@ -258,6 +260,34 @@
 
       <div class="reports-list" id="mod-reports-list">
         <!-- Renders dynamically -->
+      </div>
+
+      <!-- EXECUTOR MANAGEMENT CARD (Premium Feature) -->
+      <div class="glass-card" style="margin-top:2rem; padding:1.5rem; margin-bottom:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid var(--slate-100); padding-bottom:1rem;">
+          <div>
+            <h2 style="font-size:1.25rem; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">👷 Quản lý Đội ngũ Thực địa</h2>
+            <p style="font-size:0.8rem; color:var(--text-secondary);">Thêm mới hoặc thu hồi tài khoản của các đội thi công trực tế ngoài xã hội.</p>
+          </div>
+          <button class="btn-refresh" style="background:var(--accent); color:white; border:none; padding:0.5rem 1.25rem; border-radius:6px; cursor:pointer;" onclick="openCreateExecutorModal()">+ Thêm đơn vị mới</button>
+        </div>
+        
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead>
+              <tr style="background:var(--slate-50); color:var(--text-muted); font-weight:700;">
+                <th style="padding:12px 10px; border-bottom:2px solid var(--slate-100);">Tài khoản</th>
+                <th style="padding:12px 10px; border-bottom:2px solid var(--slate-100);">Họ tên / Đội thi công</th>
+                <th style="padding:12px 10px; border-bottom:2px solid var(--slate-100);">Chuyên môn dán nhãn</th>
+                <th style="padding:12px 10px; border-bottom:2px solid var(--slate-100);">GPS Cơ sở</th>
+                <th style="padding:12px 10px; border-bottom:2px solid var(--slate-100); text-align:center;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="moderator-executors-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -335,6 +365,82 @@
       <div style="display:flex; gap:8px; margin-top:1rem;">
         <button class="btn-gps" style="flex:1;" onclick="closeReporterModal()">Hủy</button>
         <button class="btn-primary" style="flex:2;" onclick="submitReporterIdentity()">Xác nhận & Bắt đầu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ MODAL: ĐIỀU PHỐI THỦ CÔNG (DISPATCH) ════════════ -->
+  <div class="modal" id="dispatch-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); place-items:center; z-index:9999;">
+    <div class="modal-content glass-card" style="max-width:500px; width:90%;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3 style="font-size:1.25rem; font-weight:800; color:var(--text-primary)">Bàn giao việc cho Đơn vị</h3>
+        <button onclick="closeDispatchModal()" style="background:none; border:none; font-size:1.75rem; color:var(--text-muted); cursor:pointer;">&times;</button>
+      </div>
+      
+      <input type="hidden" id="dispatch-report-id" />
+      
+      <div class="form-group">
+        <label class="form-label">Chọn Đơn vị Thi công phù hợp <span class="required">*</span></label>
+        <select id="dispatch-executor-select" class="form-input" style="width:100%; height:44px; padding:0 12px; border-radius:8px; border:1px solid var(--slate-200); background:white;">
+          <!-- Dynamically loaded -->
+        </select>
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Danh sách được xếp thứ tự ưu tiên từ gần hiện trường sự cố nhất (Haversine).</p>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Ghi chú điều phối (Chỉ đạo thực tế)</label>
+        <textarea id="dispatch-notes-input" class="form-textarea" rows="3" placeholder="Nhập hướng dẫn cụ thể cho đội thi công (ví dụ: Lưu ý dọn rác bít miệng cống xung quanh)..."></textarea>
+      </div>
+      
+      <div style="display:flex; gap:8px; margin-top:1.5rem;">
+        <button class="btn-gps" style="flex:1;" onclick="closeDispatchModal()">Hủy bỏ</button>
+        <button class="btn-primary" style="flex:2;" onclick="submitManualDispatch()">Bàn giao việc ngay →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ MODAL: THÊM ĐƠN VỊ THỰC THI (CREATE EXECUTOR) ════════════ -->
+  <div class="modal" id="create-executor-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); place-items:center; z-index:9999;">
+    <div class="modal-content glass-card" style="max-width:450px; width:90%;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3 style="font-size:1.25rem; font-weight:800; color:var(--text-primary)">Thêm Đơn vị Thực tế Mới</h3>
+        <button onclick="closeCreateExecutorModal()" style="background:none; border:none; font-size:1.75rem; color:var(--text-muted); cursor:pointer;">&times;</button>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Tên đăng nhập <span class="required">*</span></label>
+        <input type="text" id="new-exec-username" class="form-input" placeholder="Ví dụ: exec_da_nang" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu khởi tạo <span class="required">*</span></label>
+        <input type="password" id="new-exec-password" class="form-input" placeholder="Nhập mật khẩu..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tên đội / Đơn vị thi công <span class="required">*</span></label>
+        <input type="text" id="new-exec-fullname" class="form-input" placeholder="Ví dụ: Đội Cầu đường Sơn Trà" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Chuyên môn (Khớp nhãn AI) <span class="required">*</span></label>
+        <select id="new-exec-specialty" class="form-input" style="width:100%; height:44px; padding:0 12px; border-radius:8px; border:1px solid var(--slate-200); background:white;">
+          <option value="Sự cố hạ tầng & Đèn tín hiệu">Sự cố hạ tầng & Đèn tín hiệu</option>
+          <option value="Ngập nước / Triều cường">Ngập nước / Triều cường</option>
+          <option value="Ùn tắc giao thông">Ùn tắc giao thông</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Vĩ độ GPS <span class="required">*</span></label>
+          <input type="number" step="0.00001" id="new-exec-lat" class="form-input" placeholder="Ví dụ: 16.05" />
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Kinh độ GPS <span class="required">*</span></label>
+          <input type="number" step="0.00001" id="new-exec-lng" class="form-input" placeholder="Ví dụ: 108.22" />
+        </div>
+      </div>
+      
+      <div style="display:flex; gap:8px; margin-top:1.5rem;">
+        <button class="btn-gps" style="flex:1;" onclick="closeCreateExecutorModal()">Hủy bỏ</button>
+        <button class="btn-primary" style="flex:2;" onclick="submitCreateExecutor()">Tạo tài khoản →</button>
       </div>
     </div>
   </div>
