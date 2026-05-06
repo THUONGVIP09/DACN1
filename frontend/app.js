@@ -3,7 +3,7 @@
    Supports 3 Roles: Reporter, Moderator, Resolver/Admin
    ───────────────────────────────────────────────────── */
 
-const API = 'http://localhost:8000';
+const API = window.location.origin;
 
 // Global State
 let capturedImage = null;
