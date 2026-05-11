@@ -5,6 +5,18 @@
 
 const API = window.location.origin;
 
+// Vietmap API Config
+const VIETMAP_SERVICE_KEY = '68faaf21f4dba2afafb5ee7df3e473551a457ee728cfa440';
+const VIETMAP_MAP_KEY = 'f91770340cd20137068043f5ff72d6d1b34b627bbc9ba242';
+let vietmapInstance = null;
+let vietmapMarker = null;
+let vietmapUserMarker = null; // Grab-style Blue User Marker
+let currentMapTarget = { lat: null, lng: null }; // Cache target coordinates
+
+// Reporter Inline Map State
+let reporterMapInstance = null;
+let reporterMapMarker = null;
+
 // Global State
 let capturedImage = null;
 let currentGPS = { lat: null, lng: null };
@@ -123,6 +135,12 @@ async function submitLogin() {
     return;
   }
   
+  // FIX: Add loading state to login button
+  const loginBtn = document.querySelector('#login-modal .btn-primary');
+  const origText = loginBtn.textContent;
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Đang xác thực...';
+  
   try {
     const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
@@ -151,8 +169,27 @@ async function submitLogin() {
   } catch (err) {
     showToast(err.message, 'error');
     console.error(err);
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = origText;
   }
 }
+
+// FIX: Support Enter key in login modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal && loginModal.style.display === 'grid') {
+      e.preventDefault();
+      submitLogin();
+    }
+    const reporterModal = document.getElementById('reporter-modal');
+    if (reporterModal && reporterModal.style.display === 'grid') {
+      e.preventDefault();
+      submitReporterIdentity();
+    }
+  }
+});
 
 function enterCandoPortal(user) {
   document.getElementById('portal-gateway').style.display = 'none';
@@ -171,6 +208,13 @@ function enterCandoPortal(user) {
     document.getElementById('portal-reporter-view').style.display = 'none';
     document.getElementById('portal-moderator-view').style.display = 'none';
     document.getElementById('portal-resolver-view').style.display = 'block';
+    
+    // OVERHAUL: Đảm bảo reset sạch sẽ bộ lọc để không bị ẩn dữ liệu rác
+    const resSearch = document.getElementById('res-search-input');
+    const resFilter = document.getElementById('res-filter-status');
+    if (resSearch) resSearch.value = '';
+    if (resFilter) resFilter.value = '';
+
     loadResolverDashboard();
   }
 }
@@ -350,8 +394,25 @@ function getCurrentLocation() {
       isGPSAcquired = true;
       btn.classList.add('gps-active');
       text.textContent = 'Đã định vị thành công ✔';
-      status.innerHTML = `<span class="gps-success">Tọa độ: ${currentGPS.lat.toFixed(5)}, ${currentGPS.lng.toFixed(5)}</span>`;
-      showToast('Đã ghi nhận tọa độ GPS thực địa.', 'success');
+      
+      // Dynamic Reverse Geocoding using VIETMAP API
+      fetch(`https://maps.vietmap.vn/api/reverse/v3?apikey=${VIETMAP_SERVICE_KEY}&lat=${currentGPS.lat}&lng=${currentGPS.lng}`)
+        .then(r => r.json())
+        .then(data => {
+          // API may return array instead of single object (JavaScript fetch case)
+          const actualData = Array.isArray(data) ? data[0] : data;
+          const address = actualData?.display || `Tọa độ: ${currentGPS.lat.toFixed(5)}, ${currentGPS.lng.toFixed(5)}`;
+          status.innerHTML = `<span class="gps-success" style="font-weight:600;">🏠 ${address}</span>`;
+        })
+        .catch(err => {
+          console.error("Vietmap Reverse Error:", err);
+          status.innerHTML = `<span class="gps-success">Tọa độ: ${currentGPS.lat.toFixed(5)}, ${currentGPS.lng.toFixed(5)}</span>`;
+        });
+      
+      // Initialize/Update interactive Inline Map for Reporter
+      initReporterMap(currentGPS.lat, currentGPS.lng);
+        
+      showToast('Đã xác định vị trí thực địa.', 'success');
     },
     (err) => {
       console.error(err);
@@ -460,9 +521,10 @@ async function submitReportWithImage() {
       formData.append('latitude', currentGPS.lat);
       formData.append('longitude', currentGPS.lng);
     } else {
+      // FIX: Không append 'text' lần 2 — thay vào đó cập nhật giá trị đã set ở trên
       const manualLoc = document.getElementById('location-text')?.value.trim();
       if (manualLoc) {
-        formData.append('text', `${text} tại ${manualLoc}`); // Gộp địa chỉ vào text để NER xử lý
+        formData.set('text', `${text} tại ${manualLoc}`);
       }
     }
     
@@ -536,12 +598,16 @@ function resetForm() {
   document.getElementById('location-status').innerHTML = '';
   document.getElementById('location-text').value = '';
   document.getElementById('location-manual').style.display = 'none';
+  document.getElementById('reporter-map-box').style.display = 'none'; // Hide map on reset
 }
 
 // ── Moderator Dashboard Logic ───────────────────────
 async function loadModeratorDashboard() {
   const container = document.getElementById('mod-reports-list');
   container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Đang đồng bộ dữ liệu...</p></div>';
+  
+  // FIX: Load executor list alongside reports (was never called before!)
+  loadExecutorsList();
   
   const statusFilter = document.getElementById('mod-filter-status').value;
   const searchVal = document.getElementById('mod-search-input').value.trim().toLowerCase();
@@ -608,30 +674,42 @@ async function loadModeratorDashboard() {
       let assignmentInfoHTML = '';
       if (r.assigned_executor_id) {
         assignmentInfoHTML = `
-          <div style="margin-top:10px; background:rgba(37,99,235,0.04); border:1px dashed rgba(37,99,235,0.2); border-radius:6px; padding:10px 12px; font-size:12px; color:var(--text-primary);">
-            <p style="margin-bottom:4px; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:4px;">👷 ĐƠN VỊ THỰC ĐỊA ĐANG PHỤ TRÁCH:</p>
-            <p style="line-height:1.4;">• <b>ID Đơn vị:</b> Đội thi công #${r.assigned_executor_id}<br>• <b>Chỉ thị điều phối:</b> <i>${r.dispatch_notes || 'Không có ghi chú thêm.'}</i></p>
+          <div style="margin-top:12px; background:linear-gradient(135deg, rgba(37,99,235,0.08), rgba(37,99,235,0.03)); border:1px solid rgba(37,99,235,0.2); border-radius:10px; padding:12px 16px; font-size:13px; color:var(--text-primary); box-shadow: inset 0 0 10px rgba(37,99,235,0.05);">
+            <p style="margin-bottom:6px; font-weight:800; color:var(--accent); display:flex; align-items:center; gap:6px; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">
+              <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ĐÃ BÀN GIAO NHIỆM VỤ
+            </p>
+            <div style="display:flex; flex-direction:column; gap:3px;">
+              <span>👤 <b>Mã Đội thi công:</b> #${r.assigned_executor_id}</span>
+              <span style="color:var(--text-secondary); font-style:italic; display:flex; gap:4px;">💬 <b>Chỉ thị:</b> ${r.dispatch_notes || 'Theo dõi hiện trường theo quy chuẩn.'}</span>
+            </div>
           </div>
         `;
       }
       
+      const confPercent = Math.round((r.final_confidence || 0) * 100);
+      let confColor = '#10b981'; // Xanh
+      if (confPercent < 60) confColor = '#f59e0b'; // Vàng
+      if (confPercent < 35) confColor = '#ef4444'; // Đỏ
+
       container.innerHTML += `
-        <div class="report-item">
-          <div class="report-id">#${r.id}</div>
-          <div class="report-body">
-            <p class="report-text">${r.raw_text}</p>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${reporterLabel}</p>
-            <div class="report-meta">
-              <span class="tag tag-category">${r.predicted_categories || 'Không rõ sự cố'}</span>
-              <span class="tag tag-location">${r.extracted_locations || 'Không rõ địa điểm'}</span>
+        <div class="report-item" style="border-left: 4px solid transparent; transition: all 0.2s ease;">
+          <div class="report-id" style="font-family: monospace; background: var(--slate-100); color: var(--text-primary);">#${r.id}</div>
+          <div class="report-body" style="flex:1;">
+            <p class="report-text" style="font-size: 1.05rem; color: var(--text-primary); font-weight: 600;">${r.raw_text}</p>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:4px;">👤 ${reporterLabel}</p>
+            
+            <div class="report-meta" style="margin-bottom: 12px;">
+              <span class="tag tag-category" style="background:rgba(79,70,229,0.1); color:#4f46e5; font-weight:700;">📂 ${r.predicted_categories || 'Không rõ phân loại'}</span>
+              <span class="tag tag-location">📍 ${r.extracted_locations || (r.latitude ? 'Định vị qua GPS' : 'Không xác định vị trí')}</span>
+              ${r.latitude && r.longitude ? `<span class="tag" style="background:rgba(16,185,129,0.1); color:#059669; border: 1px solid rgba(16,185,129,0.2); cursor:pointer; font-weight:700; display:inline-flex; align-items:center; gap:4px;" onclick="openMapViewer(${r.latitude}, ${r.longitude})"><svg viewBox="0 0 24 24" style="width:14px; height:14px;" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Bản đồ</span>` : ''}
             </div>
             
             ${imageUrl ? `
-              <div style="margin-top:10px; display:flex; gap:12px; align-items:start;">
-                <img src="${imageUrl}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;" onclick="window.open('${imageUrl}')" />
-                <div>
-                  <p style="font-size:11px; font-weight:700; color:var(--text-muted);">PHÂN TÍCH THỊ GIÁC AI:</p>
-                  <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">${visionLabelsHTML || '<i>Trống</i>'}</div>
+              <div style="margin:14px 0; display:flex; gap:16px; align-items:center; background:var(--slate-50); padding:10px; border-radius:12px; border:1px solid var(--slate-200);">
+                <img src="${imageUrl}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; cursor:zoom-in; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onclick="window.open('${imageUrl}')" title="Xem ảnh phóng to" />
+                <div style="flex:1;">
+                  <p style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:flex; align-items:center; gap:4px;">👁️ AI VISION DETECTION:</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px;">${visionLabelsHTML || '<i style="color:#aaa; font-size:12px;">Không nhận diện được nhãn nào</i>'}</div>
                 </div>
               </div>
             ` : ''}
@@ -639,9 +717,21 @@ async function loadModeratorDashboard() {
             ${assignmentInfoHTML}
             ${actionButtons}
           </div>
-          <div class="report-right">
-            <span class="status-badge ${badgeClass}"><span class="badge-dot"></span>${statusWord}</span>
-            <span class="report-time">Độ tin cậy: <b>${((r.final_confidence || 0)*100).toFixed(0)}%</b></span>
+          
+          <div class="report-right" style="min-width: 120px; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
+            <span class="status-badge ${badgeClass}" style="padding:6px 12px; border-radius:20px; font-weight:700; text-transform:capitalize;">
+              <span class="badge-dot"></span>${statusWord}
+            </span>
+            
+            <div style="text-align:right; margin-top:15px;">
+              <p style="font-size:11px; color:var(--text-muted); font-weight:600; margin-bottom:4px;">ĐỘ TIN CẬY AI</p>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div style="width:60px; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+                  <div style="width:${confPercent}%; height:100%; background:${confColor}; border-radius:3px;"></div>
+                </div>
+                <b style="font-size:14px; color:${confColor};">${confPercent}%</b>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -698,39 +788,66 @@ function updateModStats(reports, statusFilter) {
 // ── Resolver Dashboard Logic ────────────────────────
 async function loadResolverDashboard() {
   const container = document.getElementById('res-reports-list');
-  container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Đang tải danh sách sự cố...</p></div>';
+  if (!container) return;
   
-  const filterVal = document.getElementById('res-filter-status').value;
-  const searchVal = document.getElementById('res-search-input').value.trim().toLowerCase();
+  container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>🚀 Đang đồng bộ nhiệm vụ thời gian thực...</p></div>';
+  
+  // Safeguard: Attempt robust user extraction
+  const uid = currentUser?.user_id || currentUser?.id;
+  if (!uid) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p style="color:#ef4444; font-weight:700;">❌ Lỗi xác thực phiên đăng nhập!</p>
+        <p style="font-size:0.85rem;">Không tìm thấy mã định danh người dùng. Vui lòng <a href="#" onclick="logout()" style="color:var(--accent); text-decoration:underline;">Đăng xuất và Đăng nhập lại</a>.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const filterVal = document.getElementById('res-filter-status')?.value || '';
+  const searchVal = document.getElementById('res-search-input')?.value?.trim()?.toLowerCase() || '';
   
   try {
-    let url = `${API}/reports/?limit=50`;
-    if (filterVal && filterVal !== 'pending') url += `&status=${filterVal}`;
-    if (currentUser && currentUser.user_id) {
-      url += `&assigned_executor_id=${currentUser.user_id}`;
+    // OVERHAUL: Use robust URLSearchParams builder instead of error-prone string concat
+    const queryParams = new URLSearchParams();
+    queryParams.append('limit', '50');
+    queryParams.append('assigned_executor_id', uid.toString());
+    
+    if (filterVal && filterVal !== 'pending') {
+      queryParams.append('status', filterVal);
     }
     
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Không thể kết nối máy chủ');
+    const targetUrl = `${API}/reports/?${queryParams.toString()}`;
+    
+    const res = await fetch(targetUrl);
+    if (!res.ok) throw new Error(`Kết nối API thất bại: ${res.status}`);
     
     let reports = await res.json();
     
+    // 1. Local State Filter: Pending view should ignore 'Resolved'
     if (filterVal === 'pending') {
       reports = reports.filter(r => r.status !== 'Resolved');
     }
     
+    // 2. Local Search Filter: Matching within raw text or locations
     if (searchVal) {
       reports = reports.filter(r => 
-        r.raw_text.toLowerCase().includes(searchVal) || 
+        (r.raw_text && r.raw_text.toLowerCase().includes(searchVal)) || 
         (r.extracted_locations && r.extracted_locations.toLowerCase().includes(searchVal))
       );
     }
     
     if (reports.length === 0) {
       container.innerHTML = `
-        <div class="empty-state">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <p>Hiện tại bạn không có nhiệm vụ xử lý sự cố nào phù hợp.</p>
+        <div class="empty-state" style="border:1px dashed var(--slate-200); padding: 40px 20px; border-radius:16px; background:#fff; margin-top:20px;">
+          <div style="background:#f1f5f9; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <svg viewBox="0 0 24 24" style="width:32px; height:32px; color:#94a3b8;" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3 style="font-size:1rem; color:var(--text-primary); font-weight:700; margin-bottom:6px;">Hiện tại chưa có sự cố nào</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted); max-width:300px; margin:0 auto 12px;">Hệ thống chưa phát hiện báo cáo nào được bàn giao cho Đội ngũ của bạn.</p>
+          <div style="font-size:11px; display:inline-block; background:rgba(37,99,235,0.05); color:var(--accent); padding:4px 12px; border-radius:20px; font-weight:600; border:1px solid rgba(37,99,235,0.1);">
+            👤 ID Tài khoản của bạn: <b>#${uid}</b>
+          </div>
         </div>
       `;
       return;
@@ -764,7 +881,18 @@ async function loadResolverDashboard() {
             <div class="form-group" style="margin-bottom:8px;">
               <input type="text" id="res-note-${r.id}" class="form-input" style="min-height:36px; font-size:12px; padding:6px 12px;" placeholder="Nhập ghi chú thi công thực tế (Ví dụ: Đã xử lý thông luồng, dọn cát)..." value="${r.resolver_notes || ''}" />
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              ${r.latitude && r.longitude ? `
+                <button class="btn-primary" onclick="openMapAndRouteDirectly(${r.latitude}, ${r.longitude})" style="min-height:36px; padding:6px 12px; font-size:12px; background:#10b981; color:white; border:none; box-shadow:none; cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:700;">
+                  <svg viewBox="0 0 24 24" style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  Dẫn đường ngay 🚀
+                </button>
+              ` : `
+                <div style="min-height:36px; padding:6px 12px; font-size:11px; background:#f1f5f9; color:#94a3b8; border:1px dashed #cbd5e1; border-radius:8px; display:flex; align-items:center; gap:6px; cursor:not-allowed;">
+                  <svg viewBox="0 0 24 24" style="width:14px; height:14px;" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Không thể dẫn đường (Thiếu dữ liệu GPS)
+                </div>
+              `}
               ${r.status !== 'In_Progress' ? `
                 <button class="btn-gps" onclick="resolverAction(${r.id}, 'In_Progress')" style="min-height:36px; padding:6px 12px; font-size:12px; border-color:#d97706; color:#d97706; cursor:pointer;">🚧 Nhận việc & thi công</button>
               ` : ''}
@@ -785,8 +913,9 @@ async function loadResolverDashboard() {
           <div class="report-id">#${r.id}</div>
           <div class="report-body">
             <p class="report-text" style="font-weight:600;">${r.raw_text}</p>
-            <div class="report-meta" style="margin-top:6px;">
-              <span class="tag tag-location" style="background:#f1f5f9; color:#475569; border-color:#e2e8f0;">📍 Hiện trường: ${r.extracted_locations || 'Không rõ'}</span>
+            <div class="report-meta" style="margin-top:6px; display:flex; gap:6px;">
+              <span class="tag tag-location" style="background:#f1f5f9; color:#475569; border-color:#e2e8f0;">📍 Hiện trường: ${r.extracted_locations || (r.latitude ? 'Định vị qua GPS' : 'Không rõ')}</span>
+              ${r.latitude && r.longitude ? `<span class="tag tag-location" style="background:rgba(16,185,129,0.1); color:#059669; border-color:rgba(16,185,129,0.2); cursor:pointer; font-weight:700;" onclick="openMapViewer(${r.latitude}, ${r.longitude})">🗺️ Bản đồ Vietmap</span>` : ''}
             </div>
             
             ${imageUrl ? `
@@ -810,7 +939,9 @@ async function loadResolverDashboard() {
 }
 
 async function resolverAction(id, targetStatus) {
-  const noteVal = document.getElementById(`res-note-${id}`).value.trim();
+  // FIX: Guard against missing input (e.g. when status is already Resolved, input was removed)
+  const noteEl = document.getElementById(`res-note-${id}`);
+  const noteVal = noteEl ? noteEl.value.trim() : '';
   
   try {
     const formData = new FormData();
@@ -835,7 +966,7 @@ async function resolverAction(id, targetStatus) {
 let editingExecutorId = null;
 
 function viewExecutor(exec) {
-  alert(`🔍 CHI TIẾT ĐƠN VỊ:\n\n• Tài khoản: ${exec.username}\n• Tên đội / Đơn vị: ${exec.full_name}\n• Chuyên môn dán nhãn: ${exec.specialty}\n• GPS Cơ sở: ${exec.base_latitude?.toFixed(5)}, ${exec.base_longitude?.toFixed(5)}\n• Ghi chú (SĐT, Địa chỉ): ${exec.department || 'Không có ghi chú'}`);
+  alert(`🔍 CHI TIẾT ĐƠN VỊ:\n\n• Tài khoản: ${exec.username}\n• Tên đội / Đơn vị: ${exec.full_name}\n• Chuyên môn dán nhãn: ${exec.specialty}\n• Ghi chú (SĐT, Địa chỉ): ${exec.department || 'Không có ghi chú'}`);
 }
 
 async function loadExecutorsList() {
@@ -848,7 +979,7 @@ async function loadExecutorsList() {
     tbody.innerHTML = '';
     
     if (executors.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:var(--text-muted);">Chưa có đơn vị nào được đăng ký</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-muted);">Chưa có đơn vị nào được đăng ký</td></tr>';
       return;
     }
     
@@ -859,7 +990,6 @@ async function loadExecutorsList() {
           <td style="padding:12px 10px; font-weight:bold;">${exec.username}</td>
           <td style="padding:12px 10px;">${exec.full_name}</td>
           <td style="padding:12px 10px;"><span class="tag tag-category">${exec.specialty}</span></td>
-          <td style="padding:12px 10px; font-family:monospace;">${exec.base_latitude?.toFixed(4)}, ${exec.base_longitude?.toFixed(4)}</td>
           <td style="padding:12px 10px; text-align:center;">
             <button class="btn-gps" style="border-color:var(--accent); color:var(--accent); background:rgba(37,99,235,0.05); padding:4px 8px; font-size:0.75rem; cursor:pointer;" onclick='viewExecutor(${execStr})'>Xem</button>
             <button class="btn-gps" style="border-color:#d97706; color:#d97706; background:rgba(217,119,6,0.05); padding:4px 8px; font-size:0.75rem; cursor:pointer; margin-left:4px;" onclick='openCreateExecutorModal(${execStr})'>Sửa</button>
@@ -881,8 +1011,6 @@ function openCreateExecutorModal(exec = null) {
     document.getElementById('new-exec-fullname').value = exec.full_name;
     document.getElementById('new-exec-specialty').value = exec.specialty;
     document.getElementById('new-exec-notes').value = exec.department === 'Đơn vị thực tế thực địa' ? '' : exec.department;
-    document.getElementById('new-exec-lat').value = exec.base_latitude;
-    document.getElementById('new-exec-lng').value = exec.base_longitude;
     
     document.getElementById('exec-username-group').style.display = 'none';
     document.getElementById('exec-password-group').style.display = 'none';
@@ -892,9 +1020,8 @@ function openCreateExecutorModal(exec = null) {
     document.getElementById('new-exec-username').value = '';
     document.getElementById('new-exec-password').value = '';
     document.getElementById('new-exec-fullname').value = '';
+    document.getElementById('new-exec-specialty').selectedIndex = 0; // FIX: Reset specialty dropdown
     document.getElementById('new-exec-notes').value = '';
-    document.getElementById('new-exec-lat').value = '';
-    document.getElementById('new-exec-lng').value = '';
     
     document.getElementById('exec-username-group').style.display = 'block';
     document.getElementById('exec-password-group').style.display = 'block';
@@ -912,10 +1039,8 @@ async function submitCreateExecutor() {
   const full_name = document.getElementById('new-exec-fullname').value.trim();
   const specialty = document.getElementById('new-exec-specialty').value;
   const notes = document.getElementById('new-exec-notes').value.trim();
-  const lat = parseFloat(document.getElementById('new-exec-lat').value);
-  const lng = parseFloat(document.getElementById('new-exec-lng').value);
   
-  if (!full_name || isNaN(lat) || isNaN(lng)) {
+  if (!full_name) {
     showToast('Vui lòng điền đầy đủ các thông tin bắt buộc.', 'error');
     return;
   }
@@ -930,8 +1055,6 @@ async function submitCreateExecutor() {
     formData.append('full_name', full_name);
     formData.append('specialty', specialty);
     formData.append('department', notes || 'Đơn vị thực tế thực địa');
-    formData.append('base_latitude', lat);
-    formData.append('base_longitude', lng);
     
     let url = `${API}/api/moderator/executors/create`;
     if (editingExecutorId) {
@@ -976,56 +1099,63 @@ async function openDispatchModal(reportId, primaryCategory, reportLat, reportLng
   document.getElementById('dispatch-notes-input').value = '';
   
   const select = document.getElementById('dispatch-executor-select');
-  select.innerHTML = '<option>Đang tải danh sách đơn vị thi công...</option>';
+  select.innerHTML = '<option>🚀 Đang truy xuất dữ liệu toàn ngành...</option>';
   
   try {
-    const res = await fetch(`${API}/api/moderator/executors?specialty=${encodeURIComponent(primaryCategory)}`);
-    if (!res.ok) throw new Error('Không thể lấy danh sách Executor');
+    // OVERHAUL: Luôn lấy TẤT CẢ các đơn vị, không ẩn bất kỳ ai
+    const res = await fetch(`${API}/api/moderator/executors`);
+    if (!res.ok) throw new Error('Không thể truy vấn cơ sở dữ liệu Đơn vị');
     const executors = await res.json();
     
     if (executors.length === 0) {
-      select.innerHTML = '<option value="">Không có đơn vị nào chuyên môn phù hợp!</option>';
+      select.innerHTML = '<option value="">❌ Hệ thống hiện chưa đăng ký đơn vị nào!</option>';
       document.getElementById('dispatch-modal').style.display = 'grid';
       return;
     }
     
+    // BỘ LỌC THÔNG MINH DƯỚI TRÌNH DUYỆT (Client-Side Smart Matching)
+    const pCat = (primaryCategory || '').toLowerCase();
+    const recommended = [];
+    const others = [];
+    
     executors.forEach(exec => {
-      if (reportLat && reportLng && exec.base_latitude && exec.base_longitude) {
-        exec.distance = calculateHaversineDistance(reportLat, reportLng, exec.base_latitude, exec.base_longitude);
+      const spec = (exec.specialty || '').toLowerCase();
+      // Kiểm tra nếu chuyên môn chứa từ khóa của AI Category hoặc ngược lại (Relaxed Matching)
+      if (spec && (pCat.includes(spec) || spec.includes(pCat))) {
+        recommended.push(exec);
       } else {
-        exec.distance = null;
+        others.push(exec);
       }
     });
     
-    executors.sort((a, b) => {
-      if (a.distance === null) return 1;
-      if (b.distance === null) return -1;
-      return a.distance - b.distance;
-    });
+    select.innerHTML = ''; // Xóa sạch cũ
     
-    select.innerHTML = '';
-    executors.forEach(exec => {
-      const distLabel = exec.distance !== null ? `(Cách hiện trường: ${exec.distance.toFixed(2)} km)` : '(Không có GPS)';
-      select.innerHTML += `<option value="${exec.id}">${exec.full_name} ${distLabel}</option>`;
-    });
+    // KHỐI 1: ƯU TIÊN ĐỀ XUẤT BỞI AI
+    if (recommended.length > 0) {
+      select.innerHTML += `<optgroup label="💡 ĐỀ XUẤT PHÙ HỢP NHẤT TỪ AI (Khớp chuyên môn)">`;
+      recommended.forEach(exec => {
+        select.innerHTML += `<option value="${exec.id}" style="font-weight:700; color:var(--accent);">✅ ${exec.full_name} (Phù hợp: ${exec.specialty})</option>`;
+      });
+      select.innerHTML += `</optgroup>`;
+    }
+    
+    // KHỐI 2: DANH SÁCH DỰ PHÒNG (CÁC ĐƠN VỊ KHÁC)
+    if (others.length > 0) {
+      select.innerHTML += `<optgroup label="📋 TẤT CẢ CÁC ĐỘI NGŨ KHÁC TRÊN HỆ THỐNG">`;
+      others.forEach(exec => {
+        select.innerHTML += `<option value="${exec.id}">${exec.full_name} (Chuyên môn: ${exec.specialty || 'Khác'})</option>`;
+      });
+      select.innerHTML += `</optgroup>`;
+    }
+
   } catch (err) {
-    console.error(err);
-    select.innerHTML = '<option value="">Có lỗi xảy ra khi tải đơn vị</option>';
+    console.error("Overhaul Error Log:", err);
+    select.innerHTML = '<option value="">🚫 Lỗi trong quá trình nạp dữ liệu.</option>';
   }
   
   document.getElementById('dispatch-modal').style.display = 'grid';
 }
 
-function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 function closeDispatchModal() {
   document.getElementById('dispatch-modal').style.display = 'none';
@@ -1070,4 +1200,289 @@ function showToast(msg, type = 'success') {
   setTimeout(() => {
     t.classList.remove('show');
   }, 3500);
+}
+
+// ── Vietmap View Modal Logics ──────────────────
+function openMapViewer(lat, lng) {
+  if (!lat || !lng || lat === 'null' || lng === 'null') {
+    showToast('Phản ánh này chưa có dữ liệu GPS chính xác.', 'error');
+    return;
+  }
+  
+  const latitude = parseFloat(lat);
+  const longitude = parseFloat(lng);
+  
+  // Cache target for Routing engine
+  currentMapTarget = { lat: latitude, lng: longitude };
+  
+  const modal = document.getElementById('view-map-modal');
+  modal.style.display = 'grid';
+  document.getElementById('map-modal-address').textContent = 'Đang tra cứu dữ liệu thực địa từ Vietmap...';
+  
+  // Reset "Dẫn đường" button text
+  const btnRoute = document.getElementById('btn-route-here');
+  if (btnRoute) {
+    btnRoute.innerHTML = `<svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Dẫn đường`;
+    btnRoute.disabled = false;
+    btnRoute.style.opacity = "1";
+  }
+
+  // Attempt to reverse geocode for display
+  fetch(`https://maps.vietmap.vn/api/reverse/v3?apikey=${VIETMAP_SERVICE_KEY}&lat=${latitude}&lng=${longitude}`)
+    .then(r => r.json())
+    .then(data => {
+      const actualData = Array.isArray(data) ? data[0] : data;
+      document.getElementById('map-modal-address').innerHTML = `<b>📍 Vị trí thực tế:</b> ${actualData?.display || (latitude.toFixed(5) + ', ' + longitude.toFixed(5))}`;
+    })
+    .catch(() => {
+      document.getElementById('map-modal-address').innerHTML = `<b>📍 Tọa độ GPS:</b> ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    });
+    
+  // Trigger visual map render
+  setTimeout(() => {
+    initVietmap(latitude, longitude);
+    clearExistingRoute(); // Clear previous route overlays if any
+  }, 300);
+}
+
+function initVietmap(lat, lng) {
+  const container = document.getElementById('vietmap-container');
+  
+  if (vietmapInstance) {
+    // Reuse instance: Smooth fly to new coordinates and set marker
+    vietmapInstance.jumpTo({ center: [lng, lat], zoom: 15 });
+    // In some cases render issue may happen if hidden, trigger resize
+    setTimeout(() => { vietmapInstance.resize(); vietmapInstance.flyTo({ center: [lng, lat], zoom: 15.5, speed: 0.5 }); }, 100);
+    
+    if (vietmapMarker) {
+      vietmapMarker.setLngLat([lng, lat]);
+    } else {
+      vietmapMarker = new vietmapgl.Marker({ color: "#ef4444" }).setLngLat([lng, lat]).addTo(vietmapInstance);
+    }
+  } else {
+    // Create new instance using Vietmap GL JS
+    vietmapInstance = new vietmapgl.Map({
+      container: 'vietmap-container',
+      style: `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${VIETMAP_MAP_KEY}`,
+      center: [lng, lat],
+      zoom: 15.5,
+      antialias: true
+    });
+    
+    // Add proactive auto-resize handlers to fix blank map on new init
+    vietmapInstance.on('load', () => { vietmapInstance.resize(); });
+    setTimeout(() => { if (vietmapInstance) vietmapInstance.resize(); }, 350);
+    
+    // Add navigation controls
+    vietmapInstance.addControl(new vietmapgl.NavigationControl(), 'top-right');
+    
+    // Add position point marker
+    vietmapMarker = new vietmapgl.Marker({ color: "#ef4444" }).setLngLat([lng, lat]).addTo(vietmapInstance);
+  }
+}
+
+function closeMapModal() {
+  document.getElementById('view-map-modal').style.display = 'none';
+  clearExistingRoute(); // Cleanup when closing
+}
+
+function clearExistingRoute() {
+  if (!vietmapInstance) return;
+  
+  // Remove route visual layers
+  try {
+    if (vietmapInstance.getLayer('incident-route')) vietmapInstance.removeLayer('incident-route');
+    if (vietmapInstance.getSource('incident-route')) vietmapInstance.removeSource('incident-route');
+  } catch (e) { console.error(e); }
+  
+  // Remove user location marker
+  if (vietmapUserMarker) {
+    vietmapUserMarker.remove();
+    vietmapUserMarker = null;
+  }
+}
+
+async function findRouteToIncident() {
+  if (!currentMapTarget.lat || !currentMapTarget.lng) {
+    showToast('Không có dữ liệu đích đến.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-route-here');
+  btn.innerHTML = `<span class="loader-mini"></span> Đang định vị...`;
+  btn.disabled = true;
+
+  if (!navigator.geolocation) {
+    showToast('Trình duyệt không hỗ trợ định vị GPS!', 'error');
+    resetRouteBtn();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const myLat = position.coords.latitude;
+      const myLng = position.coords.longitude;
+      
+      btn.innerHTML = `<span class="loader-mini"></span> Đang vẽ đường...`;
+
+      try {
+        // 1. Call Vietmap Route V3 API (points_encoded=false allows raw GeoJSON return)
+        const routeUrl = `https://maps.vietmap.vn/api/route/v3?apikey=${VIETMAP_SERVICE_KEY}&point=${myLat},${myLng}&point=${currentMapTarget.lat},${currentMapTarget.lng}&vehicle=car&points_encoded=false`;
+        const resp = await fetch(routeUrl);
+        const data = await resp.json();
+
+        if (!data || !data.paths || data.paths.length === 0) {
+          throw new Error('Không tìm thấy tuyến đường hợp lệ!');
+        }
+
+        const bestPath = data.paths[0];
+        const coordinates = bestPath.points.coordinates; // [[lng, lat], [lng, lat], ...]
+
+        // 2. Update Map overlay
+        clearExistingRoute();
+
+        // SAFETY FIX: Check if map style is loaded yet, wait if necessary
+        if (!vietmapInstance.isStyleLoaded()) {
+          console.log("Map style not loaded, waiting 500ms...");
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        // Add route source
+        vietmapInstance.addSource('incident-route', {
+          'type': 'geojson',
+          'data': {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': {
+              'type': 'LineString',
+              'coordinates': coordinates
+            }
+          }
+        });
+
+        // Draw route line
+        vietmapInstance.addLayer({
+          'id': 'incident-route',
+          'type': 'line',
+          'source': 'incident-route',
+          'layout': { 'line-join': 'round', 'line-cap': 'round' },
+          'paint': {
+            'line-color': '#3b82f6',
+            'line-width': 6,
+            'line-opacity': 0.8
+          }
+        });
+
+        // 3. Add User Location Marker (Distinct color - Blue)
+        vietmapUserMarker = new vietmapgl.Marker({ color: "#3b82f6" })
+          .setLngLat([myLng, myLat])
+          .addTo(vietmapInstance);
+
+        // 4. Zoom map to contain the entire route bounds automatically
+        const bounds = new vietmapgl.LngLatBounds();
+        coordinates.forEach(pt => bounds.extend(pt));
+        vietmapInstance.fitBounds(bounds, { padding: 60 });
+
+        const distKm = (bestPath.distance / 1000).toFixed(1);
+        const timeMin = Math.ceil(bestPath.time / 60000);
+        
+        showToast(`🚘 Tìm thấy tuyến đường: ${distKm} km (~${timeMin} phút)`, 'success');
+        btn.innerHTML = `🗺️ Đã vẽ đường`;
+
+      } catch (err) {
+        console.error("Routing Error:", err);
+        showToast(err.message || 'Lỗi kết nối tới dịch vụ bản đồ Vietmap!', 'error');
+        resetRouteBtn();
+      }
+    },
+    (error) => {
+      console.error("GPS Error:", error);
+      showToast('Không thể lấy vị trí hiện tại của bạn. Vui lòng cấp quyền truy cập GPS.', 'error');
+      resetRouteBtn();
+    },
+    { enableHighAccuracy: true }
+  );
+}
+
+function resetRouteBtn() {
+  const btn = document.getElementById('btn-route-here');
+  if (btn) {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Dẫn đường`;
+    btn.disabled = false;
+  }
+}
+
+function openMapAndRouteDirectly(lat, lng) {
+  // Open map first
+  openMapViewer(lat, lng);
+  // Automatically fire routing after brief delay for container stability
+  setTimeout(() => {
+    findRouteToIncident();
+  }, 900);
+}
+
+// ── Reporter Inline Map Logic ──────────────────
+function initReporterMap(lat, lng) {
+  const mapBox = document.getElementById('reporter-map-box');
+  mapBox.style.display = 'block'; 
+  
+  if (reporterMapInstance) {
+    // Smooth fly to coords
+    reporterMapInstance.resize();
+    reporterMapInstance.flyTo({ center: [lng, lat], zoom: 16, speed: 0.5 });
+    if (reporterMapMarker) reporterMapMarker.setLngLat([lng, lat]);
+  } else {
+    // Initialize high-res interactive map
+    reporterMapInstance = new vietmapgl.Map({
+      container: 'reporter-vietmap-container',
+      style: `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${VIETMAP_MAP_KEY}`,
+      center: [lng, lat],
+      zoom: 16,
+      antialias: true
+    });
+    
+    reporterMapInstance.addControl(new vietmapgl.NavigationControl({ showCompass: false }), 'top-right');
+    
+    // Blue draggable marker to indicate citizen position
+    reporterMapMarker = new vietmapgl.Marker({ color: "#3b82f6", draggable: true })
+      .setLngLat([lng, lat])
+      .addTo(reporterMapInstance);
+      
+    reporterMapInstance.on('load', () => { reporterMapInstance.resize(); });
+    setTimeout(() => { if(reporterMapInstance) reporterMapInstance.resize(); }, 400);
+    
+    // Visual refinement via map click!!!
+    reporterMapInstance.on('click', (e) => {
+      updateReporterLocation(e.lngLat.lat, e.lngLat.lng);
+    });
+    
+    // Visual refinement via marker drag!!!
+    reporterMapMarker.on('dragend', () => {
+      const lngLat = reporterMapMarker.getLngLat();
+      updateReporterLocation(lngLat.lat, lngLat.lng);
+    });
+  }
+}
+
+function updateReporterLocation(lat, lng) {
+  currentGPS = { lat: lat, lng: lng };
+  isGPSAcquired = true;
+  
+  if (reporterMapMarker) reporterMapMarker.setLngLat([lng, lat]);
+  
+  const status = document.getElementById('location-status');
+  status.innerHTML = `<span class="loading-dots gps-success">🔄 Đang tinh chỉnh địa chỉ mới...</span>`;
+  
+  // Dynamic recall of Reverse Geocoding for refinement
+  fetch(`https://maps.vietmap.vn/api/reverse/v3?apikey=${VIETMAP_SERVICE_KEY}&lat=${lat}&lng=${lng}`)
+    .then(r => r.json())
+    .then(data => {
+      const actualData = Array.isArray(data) ? data[0] : data;
+      const address = actualData?.display || `📍 Vị trí mới: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      status.innerHTML = `<span class="gps-success" style="font-weight:600;">🏠 ${address}</span>`;
+      showToast('Đã cập nhật điểm ghim sự cố.', 'success');
+    })
+    .catch(() => {
+      status.innerHTML = `<span class="gps-success">📍 Vị trí tinh chỉnh: ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>`;
+    });
 }

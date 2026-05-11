@@ -8,6 +8,9 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report
 import warnings
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 # Tắt cảnh báo zero_division
 warnings.filterwarnings('ignore')

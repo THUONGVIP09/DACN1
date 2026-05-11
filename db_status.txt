@@ -1,0 +1,19 @@
+--- USERS (Executors) ---
+ID: 2 | Username: exec_light | Full Name: Đội Thi công Cầu đường Ngũ Hành Sơn
+ID: 3 | Username: exec_water | Full Name: Đội Công trình Thoát nước Thanh Khê
+ID: 4 | Username: exec_traffic | Full Name: Đội Điều phối Đô thị Hải Châu
+ID: 5 | Username: executor | Full Name: Đội cầu đường Sơn Trà
+ID: 6 | Username: test_exec | Full Name: Test Team 123
+ID: 8 | Username: executordn | Full Name: Đội Xử Lí Ngập Nước Đà Nẵng
+
+--- REPORTS ASSIGNMENTS ---
+Report ID: 1 | Status: Resolved | Assigned Executor ID: None
+Report ID: 2 | Status: Resolved | Assigned Executor ID: None
+Report ID: 3 | Status: Assigned_Manually | Assigned Executor ID: 5
+Report ID: 4 | Status: Pending_Manual_Review | Assigned Executor ID: None
+Report ID: 5 | Status: Pending_Manual_Review | Assigned Executor ID: None
+Report ID: 6 | Status: Pending_Manual_Review | Assigned Executor ID: None
+Report ID: 7 | Status: Pending_Manual_Review | Assigned Executor ID: None
+Report ID: 8 | Status: Assigned_Manually | Assigned Executor ID: 5
+
+Done.

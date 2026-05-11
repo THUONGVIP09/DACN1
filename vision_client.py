@@ -18,16 +18,17 @@ load_dotenv(dotenv_path=env_path)
 # Google Vision API endpoint
 VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
 
-# Map các nhãn giao thông với Google Vision labels
+# Map nhãn AI (8 nhãn nguyên tử) với Google Vision labels
+# Mỗi nhãn chứa các từ khóa mà Vision API có thể phát hiện trong ảnh
 TRAFFIC_LABEL_MAP = {
-    "Ngập nước / Triều cường": ["flood", "water", "submerged", "rain", "storm", "puddle", "wet"],
-    "Ùn tắc giao thông": ["traffic jam", "congestion", "traffic", "vehicle", "car", "motorcycle", "street"],
-    "Tai nạn giao thông": ["accident", "collision", "crash", "emergency", "ambulance", "damage"],
-    "Sự cố hạ tầng & Đèn tín hiệu": ["traffic light", "signal", "infrastructure", "road", "construction"],
-    "Chướng ngại vật & Sự cố bất ngờ": ["obstacle", "debris", "tree", "block", "fallen"],
-    "Công trình thi công / Lô cốt": ["construction", "roadwork", "barrier", "fence", "work zone"],
-    "Lấn chiếm vỉa hè & Lòng đường": ["sidewalk", "encroachment", "vendor", "parking", "street food"],
-    "Vi phạm & Ý thức giao thông": ["violation", "illegal", "wrong way", "red light", "helmet"]
+    "ngập nước": ["flood", "water", "submerged", "rain", "storm", "puddle", "wet", "standing water"],
+    "ùn tắc giao thông": ["traffic jam", "congestion", "traffic", "vehicle", "car", "motorcycle", "street", "road"],
+    "tai nạn giao thông": ["accident", "collision", "crash", "emergency", "ambulance", "damage", "broken"],
+    "đèn tín hiệu": ["traffic light", "signal", "traffic signal", "light", "pole", "electrical"],
+    "hư hỏng đường xá": ["pothole", "road", "crack", "asphalt", "pavement", "hole", "damage", "street"],
+    "chướng ngại vật": ["obstacle", "debris", "tree", "block", "fallen", "rock", "branch", "log"],
+    "công trình thi công": ["construction", "roadwork", "barrier", "fence", "work zone", "crane", "excavator"],
+    "lấn chiếm vỉa hè": ["sidewalk", "encroachment", "vendor", "parking", "street food", "stall", "tent"]
 }
 
 
@@ -41,7 +42,7 @@ class VisionAnalyzer:
             key_path: Duong dan file service account JSON (optional)
             api_key: Google Vision API key (optional)
         """
-        self.key_path = key_path or os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or "dacn1-495502-d16408026152.json"
+        self.key_path = key_path or os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or "dacn1-495502-fb0f5deb9bcd.json"
         self.api_key = api_key or os.getenv("GOOGLE_VISION_API_KEY")
         
         # Check if service account JSON exists
@@ -176,51 +177,73 @@ class VisionAnalyzer:
         self, 
         nlp_category: str, 
         nlp_confidence: float,
-        vision_result: Dict
+        vision_result: Dict,
+        has_gps: bool = False,
+        has_ner_location: bool = False
     ) -> Dict:
         """
-        Kết hợp NLP và Vision để tính confidence cuối cùng
+        Hệ thống Tin cậy Đa Tín hiệu (Cross-Validation Trust Engine)
         
-        Args:
-            nlp_category: Category từ NLP classifier
-            nlp_confidence: Confidence score từ NLP (0-1)
-            vision_result: Kết quả phân tích ảnh
-            
+        Kiểm tra chéo 5 yếu tố:
+        1. NLP Classification confidence
+        2. Vision ↔ NLP match (ảnh có khớp nhãn không?)
+        3. Image quality score
+        4. GPS presence bonus
+        5. NER location extraction bonus
+        
+        Phạt nếu ảnh mâu thuẫn với văn bản (Cross-Validation Penalty)
+        
         Returns:
-            Dict: {
-                "final_score": float 0-1,
-                "nlp_score": float,
-                "vision_score": float,
-                "match_verdict": str,
-                "auto_approve": bool
-            }
+            Dict with final_score, component breakdown, verdict
         """
-        # Vision match score
+        # ── Signal 1: Vision ↔ NLP Cross-Match ──
         vision_match, matched_labels = self.match_with_category(vision_result, nlp_category)
-        vision_quality = vision_result["confidence_score"]
+        image_quality = vision_result["confidence_score"]
         
-        # Vision score = match * quality
-        vision_score = vision_match * vision_quality
+        # ── Signal 2: Cross-Validation Penalty ──
+        # Nếu NLP rất tự tin (>0.5) nhưng ảnh HOÀN TOÀN không khớp (<0.1)
+        # → Có thể ảnh giả / ảnh sai / spam
+        cross_penalty = 0.0
+        if nlp_confidence > 0.5 and vision_match < 0.1 and len(vision_result.get("labels", [])) > 3:
+            cross_penalty = -0.15
         
-        # Combined score: weighted average
-        final_score = (nlp_confidence * 0.6) + (vision_score * 0.4)
+        # ── Signal 3: GPS Bonus ──
+        gps_bonus = 0.1 if has_gps else 0.0
         
-        # Verdict
-        if final_score >= 0.85:
-            verdict = "High confidence - Auto approve"
+        # ── Signal 4: NER Location Bonus ──
+        ner_bonus = 0.1 if has_ner_location else 0.0
+        
+        # ── Compute Final Score ──
+        # Weighted: NLP 55%, Vision match 25%, Image quality 10%, Bonuses 10%
+        base_score = (
+            nlp_confidence * 0.55 +
+            vision_match * 0.25 +
+            image_quality * 0.10
+        )
+        
+        final_score = base_score + gps_bonus + ner_bonus + cross_penalty
+        final_score = max(0.0, min(1.0, final_score))  # Clamp [0, 1]
+        
+        # ── Verdict ──
+        if final_score >= 0.82:
+            verdict = "Tin cậy cao - Tự động bàn giao"
             auto_approve = True
-        elif final_score >= 0.6:
-            verdict = "Medium confidence - Quick review"
+        elif final_score >= 0.55:
+            verdict = "Tin cậy trung bình - Cần duyệt nhanh"
             auto_approve = False
         else:
-            verdict = "Low confidence - Manual review required"
+            verdict = "Tin cậy thấp - Cần duyệt thủ công"
             auto_approve = False
         
         return {
             "final_score": round(final_score, 3),
             "nlp_score": round(nlp_confidence, 3),
-            "vision_score": round(vision_score, 3),
+            "vision_score": round(vision_match, 3),
             "vision_match_score": round(vision_match, 3),
+            "image_quality": round(image_quality, 3),
+            "gps_bonus": gps_bonus,
+            "ner_bonus": ner_bonus,
+            "cross_penalty": cross_penalty,
             "matched_labels": matched_labels,
             "match_verdict": verdict,
             "auto_approve": auto_approve

@@ -1,0 +1,8 @@
+0 Chướng ngại vật & Sự cố bất ngờ
+1 Công trình thi công / Lô cốt
+2 Lấn chiếm vỉa hè & Lòng đường
+3 Ngập nước / Triều cường
+4 Sự cố hạ tầng & Đèn tín hiệu
+5 Tai nạn giao thông
+6 Vi phạm & Ý thức giao thông
+7 Ùn tắc giao thông

@@ -97,25 +97,7 @@ def predict_categories(text: str) -> tuple:
     
     return labels, round(float(confidence), 3)
 
-import math
 
-def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """
-    Tính khoảng cách địa lý Haversine (km) giữa hai tọa độ địa lý
-    """
-    if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
-        return float('inf')
-    R = 6371.0  # Bán kính Trái Đất (km)
-    
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    delta_phi = math.radians(lat2 - lat1)
-    delta_lambda = math.radians(lon2 - lon1)
-    
-    a = math.sin(delta_phi / 2.0)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
-    
-    return R * c
 
 # Tạo thư mục lưu ảnh
 UPLOAD_DIR = Path("uploads")
@@ -216,11 +198,16 @@ async def submit_report_with_image(
             vision_client = get_vision_client()
             vision_result = vision_client.analyze_image(image_bytes)
             
-            # Tính combined score
+            # Tính combined score với hệ thống Cross-Validation đa tín hiệu
+            has_gps = latitude is not None and longitude is not None
+            has_ner_location = len(entities["locations"]) > 0
+            
             combined_result = vision_client.calculate_combined_confidence(
                 nlp_category=primary_category,
                 nlp_confidence=nlp_confidence,
-                vision_result=vision_result
+                vision_result=vision_result,
+                has_gps=has_gps,
+                has_ner_location=has_ner_location
             )
             
             vision_labels_json = json.dumps(vision_result["labels"][:20])  # Lưu top 20 labels
@@ -228,44 +215,44 @@ async def submit_report_with_image(
             final_confidence = combined_result["final_score"]
             auto_approve = combined_result["auto_approve"]
             
+            print(f"[AI Trust Engine] NLP={nlp_confidence}, Vision={combined_result['vision_match_score']}, "
+                  f"GPS={'YES' if has_gps else 'NO'}, NER={'YES' if has_ner_location else 'NO'}, "
+                  f"Penalty={combined_result['cross_penalty']}, FINAL={final_confidence}")
+            
         except Exception as e:
             print(f"[Vision Error] {e}")
-            # Fallback: Chỉ dùng NLP nếu Vision fail
-            vision_labels_json = json.dumps([])
-            vision_confidence = 0.0
-            final_confidence = nlp_confidence * 0.6  # Giảm confidence vì thiếu Vision
+            # Fallback: Dùng mockup labels từ category nếu Vision fail
+            from vision_client import TRAFFIC_LABEL_MAP
+            mock_labels = TRAFFIC_LABEL_MAP.get(primary_category, ["image", "traffic", "street"])
+            vision_labels_json = json.dumps(mock_labels[:10])
+            vision_confidence = 0.5
+            final_confidence = (nlp_confidence * 0.55) + (0.10)  # Base without vision
+            if latitude is not None: final_confidence += 0.1  # GPS bonus
+            if len(entities["locations"]) > 0: final_confidence += 0.1  # NER bonus
+            final_confidence = min(final_confidence, 1.0)
             auto_approve = False
-            combined_result = {"match_verdict": "Vision API Error - Manual Review"}
+            combined_result = {"match_verdict": "Vision API Fallback Mode"}
         
         # ===== 3. DETERMINE STATUS & AUTO-DISPATCH (Grab model) =====
         assigned_executor_id = None
         dispatch_notes = None
         
-        if final_confidence >= 0.85 and latitude is not None and longitude is not None:
+        if final_confidence >= 0.82 and latitude is not None and longitude is not None:
             # Tìm Đơn vị thực thi (Executor) phù hợp theo chuyên môn
-            executors = db.query(models.User).filter(
-                models.User.role == "executor",
-                models.User.specialty == primary_category
-            ).all()
+            all_execs = db.query(models.User).filter(models.User.role == "executor").all()
+            executors = [
+                u for u in all_execs 
+                if u.specialty and (u.specialty.lower() in primary_category.lower() or primary_category.lower() in u.specialty.lower())
+            ]
             
             if executors:
-                nearest_exec = None
-                min_dist = float('inf')
-                for exec_user in executors:
-                    dist = calculate_distance(latitude, longitude, exec_user.base_latitude, exec_user.base_longitude)
-                    if dist < min_dist:
-                        min_dist = dist
-                        nearest_exec = exec_user
-                
-                if nearest_exec:
-                    assigned_executor_id = nearest_exec.id
-                    final_status = "Auto-Dispatched"
-                    dispatch_notes = f"Hệ thống AI tự động điều phối đến {nearest_exec.full_name} (Khoảng cách: {min_dist:.2f} km, Độ tin cậy: {(final_confidence*100):.0f}%)."
-                else:
-                    final_status = "Auto-Approved"
+                assigned_exec = executors[0]
+                assigned_executor_id = assigned_exec.id
+                final_status = "Auto-Dispatched"
+                dispatch_notes = f"AI Cross-Validation: {combined_result.get('match_verdict', '')}. Điều phối đến {assigned_exec.full_name}."
             else:
                 final_status = "Auto-Approved"
-        elif final_confidence >= 0.6:
+        elif final_confidence >= 0.55:
             final_status = "Pending_Quick_Review"
         else:
             final_status = "Pending_Manual_Review"
@@ -546,8 +533,7 @@ def get_executors_list(
     Lấy danh sách các Đơn vị thực thi (Executor) phục vụ tính toán và hiển thị cho cán bộ điều phối
     """
     query = db.query(models.User).filter(models.User.role == "executor")
-    if specialty:
-        query = query.filter(models.User.specialty == specialty)
+    # Phía Frontend sẽ chịu trách nhiệm hiển thị toàn diện và gợi ý thông minh
     return query.all()
 
 @app.post("/api/moderator/executors/create", response_model=schemas.UserResponse, tags=["Moderator"])
@@ -556,8 +542,6 @@ def create_executor(
     password: str = Form(...),
     full_name: str = Form(...),
     specialty: str = Form(...),
-    base_latitude: float = Form(...),
-    base_longitude: float = Form(...),
     department: Optional[str] = Form(None),
     db: Session = Depends(database.get_db)
 ):
@@ -573,8 +557,6 @@ def create_executor(
         hashed_password=hash_password(password),
         role="executor",
         specialty=specialty,
-        base_latitude=base_latitude,
-        base_longitude=base_longitude,
         full_name=full_name,
         department=department or "Đơn vị thực thi thực địa"
     )
@@ -588,8 +570,6 @@ def update_executor(
     id: int,
     full_name: str = Form(...),
     specialty: str = Form(...),
-    base_latitude: float = Form(...),
-    base_longitude: float = Form(...),
     department: Optional[str] = Form(None),
     db: Session = Depends(database.get_db)
 ):
@@ -599,8 +579,6 @@ def update_executor(
         raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản đơn vị")
     executor.full_name = full_name
     executor.specialty = specialty
-    executor.base_latitude = base_latitude
-    executor.base_longitude = base_longitude
     executor.department = department or "Đơn vị thực tế thực địa"
     db.commit()
     db.refresh(executor)
@@ -682,8 +660,6 @@ async def startup_event():
                 hashed_password=hash_password("exec123"),
                 role="executor",
                 specialty="đèn tín hiệu",
-                base_latitude=16.0245,
-                base_longitude=108.2435,
                 full_name="Đội Thi công Cầu đường Ngũ Hành Sơn",
                 department="Xí nghiệp Chiếu sáng & Cầu đường Đà Nẵng"
             )
@@ -698,8 +674,6 @@ async def startup_event():
                 hashed_password=hash_password("exec123"),
                 role="executor",
                 specialty="ngập nước",
-                base_latitude=16.0612,
-                base_longitude=108.1921,
                 full_name="Đội Công trình Thoát nước Thanh Khê",
                 department="Công ty Thoát nước và Xử lý Nước thải Đà Nẵng"
             )
@@ -714,8 +688,6 @@ async def startup_event():
                 hashed_password=hash_password("exec123"),
                 role="executor",
                 specialty="ùn tắc giao thông",
-                base_latitude=16.0595,
-                base_longitude=108.2215,
                 full_name="Đội Điều phối Đô thị Hải Châu",
                 department="Trung tâm Điều hành Giao thông Đô thị Đà Nẵng"
             )

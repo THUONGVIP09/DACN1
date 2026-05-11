@@ -50,8 +50,6 @@ class User(Base):
     
     # Grab-Traffic Specific Fields
     specialty = Column(String(100), nullable=True)  # Khớp trực tiếp với 8 nhãn dán trong dataset
-    base_latitude = Column(Float, nullable=True)  # Vĩ độ hoạt động
-    base_longitude = Column(Float, nullable=True)  # Kinh độ hoạt động
     
     full_name = Column(String(100), nullable=True)
     department = Column(String(100), nullable=True)

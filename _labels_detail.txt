@@ -1,0 +1,4 @@
+array(['Chướng ngại vật & Sự cố bất ngờ', 'Công trình thi công / Lô cốt',
+       'Lấn chiếm vỉa hè & Lòng đường', 'Ngập nước / Triều cường',
+       'Sự cố hạ tầng & Đèn tín hiệu', 'Tai nạn giao thông',
+       'Vi phạm & Ý thức giao thông', 'Ùn tắc giao thông'], dtype=object)

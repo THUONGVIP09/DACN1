@@ -77,8 +77,6 @@ class UserResponse(BaseModel):
     username: str
     role: str
     specialty: Optional[str] = None
-    base_latitude: Optional[float] = None
-    base_longitude: Optional[float] = None
     full_name: Optional[str] = None
     department: Optional[str] = None
 
