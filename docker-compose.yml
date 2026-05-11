@@ -14,6 +14,19 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-
+  web:
+      build: .
+      container_name: traffic_fastapi_web
+      restart: always
+      ports:
+        - "8000:8000"
+      volumes:
+        - .:/app
+      env_file:
+        - .env
+      depends_on:
+        - db
 volumes:
   mysql_data:
+
+  

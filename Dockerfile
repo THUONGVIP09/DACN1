@@ -10,9 +10,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY requirements.txt .
+COPY requirements_backend.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir pymysql cryptography uvicorn fastapi sqlalchemy python-multipart jinja2 google-cloud-vision requests
-
+RUN pip install --no-cache-dir -r requirements_backend.txt
 COPY . .
 
 EXPOSE 8000
